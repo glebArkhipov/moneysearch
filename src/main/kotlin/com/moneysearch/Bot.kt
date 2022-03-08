@@ -1,7 +1,8 @@
 package com.moneysearch
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlin.math.roundToLong
+import com.moneysearch.SearchArea.VASKA
+import com.moneysearch.SearchArea.WHOLE_SPB
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -35,19 +36,15 @@ class Bot(
         }
         val message = update.message
         val chatId = message.chatId
+        val userTelegramId = update.message.from.id
         if (message.hasText()) {
             when (message.text) {
                 "ping" -> sendNotification(chatId, "pong")
-                "check" -> sendBanksWithEurAndUsdInWholeSpb(chatId)
-                "notify" -> notifyRegularly(chatId)
+                "check" -> handleCheck(chatId, userTelegramId)
+                "notify" -> setNotification(chatId, userTelegramId)
             }
         } else if (message.hasLocation()) {
-            val location = Location(
-                latitude = update.message.location.latitude,
-                longitude = update.message.location.longitude
-            )
-            val bounds = coordinatesCalculator.getBounds(location, 1000)
-            sendBanksWithEurAndUsdInWholeSpb(chatId, bounds)
+            handleLocation(update)
         }
     }
 
@@ -68,31 +65,45 @@ class Bot(
         return userAuthorized
     }
 
-    fun notifyRegularly(chatId: Long) {
-        Notifier(
-            Bot(bankFinder, coordinatesCalculator, userRepository, jsonObjectMapper, botToken, botToken, allowedUsers),
-            chatId
-        ).start()
-    }
-
-    fun notifyAboutBanksWithEurAndUsdInWholeSpb(chatId: Long) {
-        sendNotification(chatId, "Lets check for banks with eur and usd")
-        while (true) {
-            sendBanksWithEurAndUsdInWholeSpb(chatId)
-            val randomPart = (Math.random() * 30000).roundToLong()
-            val sleepFor = 30000 + randomPart
-            println("Next check in $sleepFor")
-            Thread.sleep(sleepFor)
-        }
-    }
-
-    private fun sendBanksWithEurAndUsdInWholeSpb(chatId: Long, bounds: Bounds = WHOLE_SPB_BOUNDS) {
-        val banks = bankFinder.findBanksWithCurrencies(
-            setOf("EUR", "USD"), bounds
+    fun handleLocation(update: Update) {
+        val location = Location(
+            latitude = update.message.location.latitude,
+            longitude = update.message.location.longitude
         )
+        val bounds = coordinatesCalculator.getBounds(location, 1000)
+        val banks = bankFinder.findBanks(setOf("EUR", "USD"), bounds)
+        sendNotificationAboutBanks(update.message.chatId, banks)
+    }
+
+    fun handleCheck(chatId: Long, userTelegramId: Long) {
+        val banks = bankFinder.findBanks(setOf("EUR", "USD"), VASKA)
+        sendNotificationAboutBanks(chatId, banks, true)
+    }
+
+    fun setNotification(chatId: Long, userTelegramId: Long) {
+        val user = userRepository.findUserByTelegramId(userTelegramId)!!
+        user.searchArea = WHOLE_SPB
+        user.notificationsTurnOn = true
+        user.currencies = setOf("EUR", "USD")
+        userRepository.save(user)
+        val message = """
+            Notification will be send every ~45 seconds
+            Currencies EUR and USD
+            Location WHOLE_SPB
+        """.trimIndent()
+        sendNotification(chatId, message)
+    }
+
+    fun sendNotificationAboutBanks(
+        chatId: Long,
+        banks: List<BankPoint>,
+        notifyWhenNoBanks: Boolean = false
+    ) {
         if (banks.isNotEmpty()) {
             val banksAsString = jsonObjectMapper.writeValueAsString(banks)
             sendNotification(chatId, banksAsString)
+        } else if (notifyWhenNoBanks) {
+            sendNotification(chatId, "No banks are found")
         }
     }
 
@@ -100,14 +111,5 @@ class Bot(
         val responseMessage = SendMessage(chatId.toString(), responseText)
         responseMessage.enableMarkdown(true)
         execute(responseMessage)
-    }
-}
-
-class Notifier(
-    private val bot: Bot,
-    private val chatId: Long
-) : Thread() {
-    override fun run() {
-        bot.notifyAboutBanksWithEurAndUsdInWholeSpb(chatId)
     }
 }

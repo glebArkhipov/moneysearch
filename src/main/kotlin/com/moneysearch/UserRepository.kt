@@ -8,19 +8,21 @@ import org.springframework.stereotype.Repository
 @Repository
 interface UserRepository: MongoRepository<User, Long> {
     fun findUserByTelegramId(telegramId: Long): User?
+    fun findAllByNotificationsTurnOn(notificationsTurnOn: Boolean): List<User>
 }
 
 @Document(collection = "users")
 data class User(
     @Id
     val telegramId: Long,
-    val username: String,
-    val currencies: Set<String>,
-    val location: Location? = null,
-    val distanceFromLocation: Long? = null,
-    val searchArea: SearchArea? = null
+    var username: String,
+    var currencies: Set<String>,
+    var notificationsTurnOn: Boolean = false,
+    var location: Location? = null,
+    var distanceFromLocation: Long? = null,
+    var searchArea: SearchArea? = null
 )
 
 enum class SearchArea {
-    WHOLE_SPB, VASKA, BY_LOCATION
+    WHOLE_SPB, VASKA
 }

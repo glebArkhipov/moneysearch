@@ -49,14 +49,3 @@ data class Location(
     val longitude: Double,
     val latitude: Double
 )
-
-val WHOLE_SPB_BOUNDS = Bounds(
-    bottomLeft = Bound(
-        lat = 59.87594110877944,
-        lng = 30.189810644085755
-    ),
-    topRight = Bound(
-        lat = 60.03428796417976,
-        lng = 30.524737888104317
-    )
-)
