@@ -1,0 +1,12 @@
+bot:
+  token: ${BOT_TOKEN}
+  username: ${BOT_NAME}
+auth:
+  allowed:
+    users: ${ALLOWED_USERS}
+spring:
+  data:
+    mongodb:
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
+      database: ${MONGO_DB}

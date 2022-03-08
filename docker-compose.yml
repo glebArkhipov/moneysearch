@@ -1,0 +1,24 @@
+version: "3.7"
+services:
+  backend:
+    image: 'moneysearch-backend:latest'
+    container_name: backend
+    depends_on:
+      - mongo_db
+    environment:
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      MONGO_HOST: mongo_db
+      MONGO_PORT: 27017
+      MONGO_DB: moneysearch
+      BOT_TOKEN: ${BOT_TOKEN}
+      BOT_NAME: ${BOT_NAME}
+      ALLOWED_USERS: ${ALLOWED_USERS}
+    ports:
+      - '5005:5005'
+  mongo_db:
+    image: "mongo:5.0.6"
+    container_name: mongo_db
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./data/db:/data/db
