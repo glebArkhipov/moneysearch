@@ -5,13 +5,13 @@ import com.moneysearch.SearchArea.WHOLE_SPB
 import org.springframework.stereotype.Component
 
 @Component
-class BankFinder(
+class BankPointsFinder(
     private val bankAdapter: BankApiAdapter
 ) {
-    fun findBanks(currencies: Set<String>, bounds: Bounds): List<BankPoint> =
+    fun find(currencies: Set<String>, bounds: Bounds): List<BankPoint> =
         bankAdapter.findBankPoints(currencies, bounds)
 
-    fun findBanks(currencies: Set<String>, searchArea: SearchArea): List<BankPoint> =
+    fun find(currencies: Set<String>, searchArea: SearchArea): List<BankPoint> =
         bankAdapter.findBankPoints(currencies, searchAreasToBounds[searchArea]!!)
 }
 

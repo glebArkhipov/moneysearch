@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 @Component
 class Notifier(
     private val userRepository: UserRepository,
-    private val bankFinder: BankFinder,
+    private val bankFinder: BankPointsFinder,
     private val bot: Bot
 ) {
     @Scheduled(timeUnit = SECONDS, fixedDelay = 30)
@@ -17,7 +17,7 @@ class Notifier(
         val users = userRepository.findAllByNotificationsTurnOn(true)
         println("Users will be notified: users=${users.map { it.username }}")
         users.forEach{ user ->
-            val banks = bankFinder.findBanks(
+            val banks = bankFinder.find(
                 currencies = user.currencies,
                 searchArea = user.searchArea!!
             )

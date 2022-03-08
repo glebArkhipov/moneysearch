@@ -11,7 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.Update
 
 @Component
 class Bot(
-    private val bankFinder: BankFinder,
+    private val bankFinder: BankPointsFinder,
     private val coordinatesCalculator: CoordinatesCalculator,
     private val userRepository: UserRepository,
     private val jsonObjectMapper: ObjectMapper,
@@ -71,12 +71,12 @@ class Bot(
             longitude = update.message.location.longitude
         )
         val bounds = coordinatesCalculator.getBounds(location, 1000)
-        val banks = bankFinder.findBanks(setOf("EUR", "USD"), bounds)
+        val banks = bankFinder.find(setOf("EUR", "USD"), bounds)
         sendNotificationAboutBanks(update.message.chatId, banks)
     }
 
     fun handleCheck(chatId: Long, userTelegramId: Long) {
-        val banks = bankFinder.findBanks(setOf("EUR", "USD"), VASKA)
+        val banks = bankFinder.find(setOf("EUR", "USD"), VASKA)
         sendNotificationAboutBanks(chatId, banks, true)
     }
 
