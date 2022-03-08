@@ -15,12 +15,14 @@ interface UserRepository: MongoRepository<User, Long> {
 data class User(
     @Id
     val telegramId: Long,
+    var chatId: Long,
     var username: String,
-    var currencies: Set<String>,
+    var currencies: Set<String> = emptySet(),
     var notificationsTurnOn: Boolean = false,
     var location: Location? = null,
     var distanceFromLocation: Long? = null,
-    var searchArea: SearchArea? = null
+    var searchArea: SearchArea? = null,
+    var lastCommand: String? = null
 )
 
 enum class SearchArea {

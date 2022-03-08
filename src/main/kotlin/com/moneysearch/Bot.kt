@@ -50,10 +50,15 @@ class Bot(
 
     private fun checkAuthority(update: Update): Boolean {
         val userName = update.message.from.userName
+        val chatId = update.message.chatId
         val userTelegramId = update.message.from.id
         val findUserByTelegramId = userRepository.findUserByTelegramId(userTelegramId)
         if (findUserByTelegramId == null) {
-            userRepository.save(User(userTelegramId, userName, emptySet()))
+            userRepository.save(User(
+                telegramId = userTelegramId,
+                chatId = chatId,
+                username = userName
+            ))
         }
         val allowedUsersSet = allowedUsers.split(",")
         val userAuthorized = allowedUsersSet.contains(userName)
