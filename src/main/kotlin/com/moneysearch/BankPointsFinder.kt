@@ -32,7 +32,7 @@ data class Bound(
 )
 
 val searchAreasToBounds: Map<SearchArea, Bounds> = mapOf(
-    VASKA to Bounds(
+    WHOLE_SPB to Bounds(
         bottomLeft = Bound(
             lat = 59.87594110877944,
             lng = 30.189810644085755
@@ -42,7 +42,7 @@ val searchAreasToBounds: Map<SearchArea, Bounds> = mapOf(
             lng = 30.524737888104317
         )
     ),
-    WHOLE_SPB to Bounds(
+    VASKA  to Bounds(
         bottomLeft = Bound(
             lat = 59.92063510877944,
             lng = 30.198010644085755
