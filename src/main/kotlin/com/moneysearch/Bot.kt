@@ -2,6 +2,7 @@ package com.moneysearch
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.moneysearch.SearchArea.VASKA
+import com.moneysearch.SearchArea.WHOLE_SPB
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -43,28 +44,29 @@ class Bot(
         val lastCommand = user.lastCommand
         if (lastCommand == "Set custom search area") {
             if (message.hasLocation()) {
-                user.lastCommand = null
-                userRepository.save(user)
                 setLocation(update, user)
-                handleBack(update)
             } else if (message.text == "Back") {
-                user.lastCommand = null
-                userRepository.save(user)
-                handleBack(update)
+                handleBack(update, user)
             } else {
                 sendNotification(update.message.chatId, "Unknown command")
             }
         } else if (lastCommand == "Set distance from location (meters)") {
             setDistance(update, user)
-            user.lastCommand = null
-            userRepository.save(user)
-            handleBack(update)
+            handleBack(update, user)
+        } else if (lastCommand == "Choose predefined location") {
+            when (message.text) {
+                "Vaska" -> setSearchArea(update, user, VASKA)
+                "Whole spb" -> setSearchArea(update, user, WHOLE_SPB)
+                "Back" -> handleBack(update, user)
+                else -> sendNotification(update.message.chatId, "Unknown command")
+            }
         } else if (message.hasText()) {
             when (message.text) {
                 "User info" -> sendUserInfo(update, user)
                 "Get bank points with money" -> sendBankPointsWithMoney(update, user)
                 "Turn notification on" -> turnNotificationOn(update, user)
                 "Set custom search area" -> customSearchAreaKeyboard(update, user)
+                "Choose predefined location" -> definedSearchAreasKeyboard(update, user)
                 "Set distance from location (meters)" -> {
                     user.lastCommand = "Set distance from location (meters)"
                     userRepository.save(user)
@@ -114,6 +116,15 @@ class Bot(
         user.searchArea = null
         userRepository.save(user)
         sendNotification(update.message.chatId, "Location is set")
+        handleBack(update, user)
+    }
+
+    fun setSearchArea(update: Update, user: User, searchArea: SearchArea) {
+        user.searchArea = searchArea
+        user.location = null
+        userRepository.save(user)
+        sendNotification(update.message.chatId, "$searchArea is set as location area")
+        handleBack(update, user)
     }
 
     fun setDistance(update: Update, user: User) {
@@ -127,7 +138,9 @@ class Bot(
         }
     }
 
-    fun handleBack(update: Update) {
+    fun handleBack(update: Update, user: User) {
+        user.lastCommand = null
+        userRepository.save(user)
         val message = SendMessage(update.message.chatId.toString(), "Main menu")
         message.replyMarkup = ReplyKeyboardRemove(true)
         execute(message)
@@ -203,6 +216,21 @@ class Bot(
         val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
         keyboardMarkup.resizeKeyboard
         val message = SendMessage(update.message.chatId.toString(), "You could set location by map")
+        message.replyMarkup = keyboardMarkup
+
+        execute(message)
+    }
+
+    private fun definedSearchAreasKeyboard(update: Update, user: User) {
+        user.lastCommand = "Choose predefined location"
+        userRepository.save(user)
+        val row = KeyboardRow()
+        row.add("Vaska")
+        row.add("Whole spb")
+        row.add("Back")
+        val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
+        keyboardMarkup.resizeKeyboard
+        val message = SendMessage(update.message.chatId.toString(), "Predefined location:")
         message.replyMarkup = keyboardMarkup
 
         execute(message)
