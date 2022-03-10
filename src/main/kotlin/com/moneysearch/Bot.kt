@@ -16,21 +16,21 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 class Bot(
     private val bankFinder: BankPointsFinder,
     private val coordinatesCalculator: CoordinatesCalculator,
+    private val authorityService: AuthorityService,
     private val userRepository: UserRepository,
     private val jsonObjectMapper: ObjectMapper,
     @Value("\${bot.token}")
     private val botToken: String,
     @Value("\${bot.username}")
     private val botUsername: String,
-    @Value("\${auth.allowed.users}")
-    private val allowedUsers: String,
 ) : TelegramLongPollingBot() {
     override fun getBotToken(): String = botToken
 
     override fun getBotUsername(): String = botUsername
 
     override fun onUpdateReceived(update: Update) {
-        if (!checkAuthority(update)) {
+        if (!authorityService.checkAuthority(update)) {
+            sendNotification(update.message.chatId, "You are not allowed to use this service")
             return
         }
         if (!update.hasMessage()) {
@@ -72,31 +72,6 @@ class Bot(
                 }
             }
         }
-    }
-
-    private fun checkAuthority(update: Update): Boolean {
-        val userName = update.message.from.userName
-        val chatId = update.message.chatId
-        val userTelegramId = update.message.from.id
-        val findUserByTelegramId = userRepository.findUserByTelegramId(userTelegramId)
-        if (findUserByTelegramId == null) {
-            println("New user created: telegramId=${userTelegramId}, userName=${userName}")
-            userRepository.save(
-                User(
-                    telegramId = userTelegramId,
-                    chatId = chatId,
-                    username = userName
-                )
-            )
-        }
-        val allowedUsersSet = allowedUsers.split(",")
-        val userAuthorized = allowedUsersSet.contains(userName)
-        println("user $userName attempt to access service")
-        if (!userAuthorized) {
-            println("user $userName is not authorized")
-            sendNotification(update.message.chatId, "You are not authorized")
-        }
-        return userAuthorized
     }
 
     fun sendUserInfo(update: Update, user: User) {
