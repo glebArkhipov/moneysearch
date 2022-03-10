@@ -7,7 +7,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface UserRepository: MongoRepository<User, Long> {
-    fun findUserByTelegramId(telegramId: Long): User?
+    fun findUserByTelegramId(telegramId: Long): User
+    fun existsUserByTelegramId(telegramId: Long): Boolean
     fun findAllByNotificationsTurnOn(notificationsTurnOn: Boolean): List<User>
 }
 

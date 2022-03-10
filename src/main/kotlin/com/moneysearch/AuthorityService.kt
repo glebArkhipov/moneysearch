@@ -14,8 +14,7 @@ class AuthorityService(
         val userName = update.message.from.userName
         val chatId = update.message.chatId
         val userTelegramId = update.message.from.id
-        val findUserByTelegramId = userRepository.findUserByTelegramId(userTelegramId)
-        if (findUserByTelegramId == null) {
+        if (!userRepository.existsUserByTelegramId(userTelegramId)) {
             println("New user created: telegramId=${userTelegramId}, userName=${userName}")
             userRepository.save(
                 User(

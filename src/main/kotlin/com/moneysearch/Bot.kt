@@ -40,7 +40,7 @@ class Bot(
         }
         val message = update.message
         val userTelegramId = update.message.from.id
-        val user = userRepository.findUserByTelegramId(userTelegramId)!!
+        val user = userRepository.findUserByTelegramId(userTelegramId)
         val lastCommand = user.lastCommand
         if (lastCommand == "Set custom search area") {
             if (message.hasLocation()) {
