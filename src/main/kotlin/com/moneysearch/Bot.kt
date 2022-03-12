@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.moneysearch.SearchAreaType.CUSTOM
 import com.moneysearch.SearchAreaType.VASKA
 import com.moneysearch.SearchAreaType.WHOLE_SPB
+import com.moneysearch.Step.MAIN_MENU
+import com.moneysearch.Step.SET_CUSTOM_SEARCH_AREA_LOCATION
+import com.moneysearch.Step.SET_DISTANCE
+import com.moneysearch.Step.SET_PREDEFINED_SEARCH_AREA
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -39,41 +43,56 @@ class Bot(
             println("update has no message")
             return
         }
-        val message = update.message
         val userTelegramId = update.message.from.id
         val user = userService.findUserByTelegramId(userTelegramId)
-        val lastCommand = user.lastCommand
-        if (lastCommand == "Set custom search area") {
-            if (message.hasLocation()) {
-                setLocation(update, user)
-            } else if (message.text == "Back") {
-                handleBack(update, user)
-            } else {
-                sendNotification(update.message.chatId, "Unknown command")
-            }
-        } else if (lastCommand == "Set distance from location (meters)") {
-            setDistance(update, user)
-            handleBack(update, user)
-        } else if (lastCommand == "Choose predefined location") {
-            when (message.text) {
-                "Vaska" -> setSearchArea(update, user, VASKA)
-                "Whole spb" -> setSearchArea(update, user, WHOLE_SPB)
-                "Back" -> handleBack(update, user)
-                else -> sendNotification(update.message.chatId, "Unknown command")
-            }
-        } else if (message.hasText()) {
-            when (message.text) {
-                "User info" -> sendUserInfo(update, user)
-                "Get bank points with money" -> sendBankPointsWithMoney(update, user)
-                "Turn notification on" -> turnNotificationOn(update, user)
-                "Set custom search area" -> customSearchAreaKeyboard(update, user)
-                "Choose predefined location" -> definedSearchAreasKeyboard(update, user)
-                "Set distance from location (meters)" -> {
-                    userService.setLastCommand(user, "Set distance from location (meters)")
-                    sendNotification(update.message.chatId, "Please, enter a number")
-                }
-            }
+        when (user.step) {
+            MAIN_MENU -> handleMainMenuCommands(update, user)
+            SET_PREDEFINED_SEARCH_AREA -> handleSetPredefinedSearchAreaCommands(update, user)
+            SET_CUSTOM_SEARCH_AREA_LOCATION -> handleSetCustomCustomSearchAreaCommands(update, user)
+            SET_DISTANCE -> handleSetDistanceCommands(update, user)
         }
+    }
+
+    fun handleMainMenuCommands(update: Update, user: User) {
+        val message = update.message
+        when (message.text) {
+            "User info" -> sendUserInfo(update, user)
+            "Get bank points with money" -> sendBankPointsWithMoney(update, user)
+            "Turn notification on" -> turnNotificationOn(update, user)
+            "Set custom search area" -> customSearchAreaKeyboard(update, user)
+            "Choose predefined location" -> predefinedSearchAreasKeyboard(update, user)
+            "Set distance from location (meters)" -> {
+                userService.setStep(user, SET_DISTANCE)
+                sendNotification(update.message.chatId, "Please, enter a number")
+            }
+            else -> sendNotification(update.message.chatId, "Unknown command")
+        }
+    }
+
+    fun handleSetCustomCustomSearchAreaCommands(update: Update, user: User) {
+        val message = update.message
+        if (message.hasLocation()) {
+            setLocation(update, user)
+        } else if (message.text == "Back") {
+            returnToMainMenu(update, user)
+        } else {
+            sendNotification(update.message.chatId, "Unknown command")
+        }
+    }
+
+    fun handleSetPredefinedSearchAreaCommands(update: Update, user: User) {
+        val message = update.message
+        when (message.text) {
+            "Vaska" -> setSearchArea(update, user, VASKA)
+            "Whole spb" -> setSearchArea(update, user, WHOLE_SPB)
+            "Back" -> returnToMainMenu(update, user)
+            else -> sendNotification(update.message.chatId, "Unknown command")
+        }
+    }
+
+    fun handleSetDistanceCommands(update: Update, user: User) {
+        setDistance(update, user)
+        returnToMainMenu(update, user)
     }
 
     fun sendUserInfo(update: Update, user: User) {
@@ -82,7 +101,7 @@ class Bot(
             Currencies - ${user.currencies}
             ${searchAreaInfo(user.searchArea)}
             Notification - ${if (user.notificationsTurnOn) "on" else "off"}
-            Last command - ${user.lastCommand}
+            Current step - ${user.step}
             """.lines().joinToString(transform = String::trim, separator = "\n")
         sendNotification(update.message.chatId, message)
     }
@@ -102,14 +121,14 @@ class Bot(
             longitude = update.message.location.longitude
         )
         userService.setCustomLocation(user, location)
-        sendNotification(update.message.chatId, "Location is set")
-        handleBack(update, user)
+        sendNotification(update.message.chatId, "Custom location is set")
+        returnToMainMenu(update, user)
     }
 
     fun setSearchArea(update: Update, user: User, searchAreaType: SearchAreaType) {
         userService.setPredefinedSearchArea(user, searchAreaType)
-        sendNotification(update.message.chatId, "$searchAreaType is set as location area")
-        handleBack(update, user)
+        sendNotification(update.message.chatId, "$searchAreaType is set as search area")
+        returnToMainMenu(update, user)
     }
 
     fun setDistance(update: Update, user: User) {
@@ -122,8 +141,8 @@ class Bot(
         }
     }
 
-    fun handleBack(update: Update, user: User) {
-        userService.setLastCommand(user, null)
+    fun returnToMainMenu(update: Update, user: User) {
+        userService.setStep(user, MAIN_MENU)
         val message = SendMessage(update.message.chatId.toString(), "Main menu")
         message.replyMarkup = ReplyKeyboardRemove(true)
         execute(message)
@@ -165,7 +184,7 @@ class Bot(
     }
 
     private fun customSearchAreaKeyboard(update: Update, user: User) {
-        userService.setLastCommand(user, "Set custom search area")
+        userService.setStep(user, SET_CUSTOM_SEARCH_AREA_LOCATION)
         val row = KeyboardRow()
         val currentLocationButton = KeyboardButton("Set current location")
         currentLocationButton.requestLocation = true
@@ -180,8 +199,8 @@ class Bot(
         execute(message)
     }
 
-    private fun definedSearchAreasKeyboard(update: Update, user: User) {
-        userService.setLastCommand(user, "Choose predefined location")
+    private fun predefinedSearchAreasKeyboard(update: Update, user: User) {
+        userService.setStep(user, SET_PREDEFINED_SEARCH_AREA)
         val row = KeyboardRow()
         row.add("Vaska")
         row.add("Whole spb")

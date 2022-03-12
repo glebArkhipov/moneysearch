@@ -32,8 +32,8 @@ class UserService(
         userRepository.save(user)
     }
 
-    fun setLastCommand(user: User, lastCommand: String?) {
-        user.lastCommand = lastCommand
+    fun setStep(user: User, step: Step) {
+        user.step = step
         userRepository.save(user)
     }
 

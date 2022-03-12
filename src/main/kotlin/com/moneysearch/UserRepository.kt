@@ -22,8 +22,12 @@ data class User(
     var currencies: Set<String> = setOf("EUR", "USD", "RUB"),
     var notificationsTurnOn: Boolean = false,
     var searchArea: SearchArea = SearchArea(WHOLE_SPB),
-    var lastCommand: String? = null
+    var step: Step = Step.MAIN_MENU
 )
+
+enum class Step {
+    MAIN_MENU, SET_PREDEFINED_SEARCH_AREA, SET_CUSTOM_SEARCH_AREA_LOCATION, SET_DISTANCE
+}
 
 enum class SearchAreaType {
     WHOLE_SPB, VASKA, CUSTOM
