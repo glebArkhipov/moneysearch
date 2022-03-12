@@ -41,4 +41,9 @@ class UserService(
         user.notificationsTurnOn = true
         userRepository.save(user)
     }
+
+    fun turnNotificationOff(user: User) {
+        user.notificationsTurnOn = false
+        userRepository.save(user)
+    }
 }

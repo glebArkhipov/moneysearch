@@ -51,6 +51,7 @@ class Bot(
             SET_CUSTOM_SEARCH_AREA -> handleSetCustomCustomSearchAreaCommands(update, user)
             SET_DISTANCE -> handleSetDistanceCommands(update, user)
         }
+        returnStepDefaultResponse(update, user)
     }
 
     fun handleMainMenuCommands(update: Update, user: User) {
@@ -59,8 +60,9 @@ class Bot(
             "User info" -> sendUserInfo(update, user)
             "Get bank points with money" -> sendBankPointsWithMoney(update, user)
             "Turn notification on" -> turnNotificationOn(update, user)
-            "Set custom search area" -> customSearchAreaKeyboard(update, user)
-            "Choose predefined location" -> predefinedSearchAreasKeyboard(update, user)
+            "Turn notification off" -> turnNotificationOff(update, user)
+            "Set custom search area" -> userService.setStep(user, SET_CUSTOM_SEARCH_AREA)
+            "Choose predefined location" -> userService.setStep(user, SET_PREDEFINED_SEARCH_AREA)
             else -> handleUnknownCommand(update, user)
         }
     }
@@ -70,10 +72,9 @@ class Bot(
         if (message.hasLocation()) {
             setLocation(update, user)
         } else if (message.text == "Back") {
-            mainMenuKeyboard(update, user)
+            userService.setStep(user, MAIN_MENU)
         } else if (message.text == "Set distance from location (meters)") {
             userService.setStep(user, SET_DISTANCE)
-            removeKeyBoardAndSendNotification(update.message.chatId, "Please, enter a number")
         } else {
             handleUnknownCommand(update, user)
         }
@@ -84,23 +85,26 @@ class Bot(
         when (message.text) {
             "Vaska" -> setPredefinedSearchArea(update, user, VASKA)
             "Whole spb" -> setPredefinedSearchArea(update, user, WHOLE_SPB)
-            "Back" -> mainMenuKeyboard(update, user)
+            "Back" -> userService.setStep(user, MAIN_MENU)
             else -> handleUnknownCommand(update, user)
         }
     }
 
     fun handleSetDistanceCommands(update: Update, user: User) {
         setDistance(update, user)
-        customSearchAreaKeyboard(update, user)
+        userService.setStep(user, SET_CUSTOM_SEARCH_AREA)
     }
 
     fun handleUnknownCommand(update: Update, user: User) {
         sendNotification(update.message.chatId, "Unknown command")
+    }
+
+    fun returnStepDefaultResponse(update: Update, user: User) {
         when (user.step) {
             MAIN_MENU -> mainMenuKeyboard(update, user)
             SET_PREDEFINED_SEARCH_AREA -> predefinedSearchAreasKeyboard(update, user)
             SET_CUSTOM_SEARCH_AREA -> customSearchAreaKeyboard(update, user)
-            else -> {}
+            else -> removeKeyBoardAndSendNotification(update.message.chatId, "Please, enter a number")
         }
     }
 
@@ -131,13 +135,12 @@ class Bot(
         )
         userService.setCustomLocation(user, location)
         sendNotification(update.message.chatId, "Custom location is set")
-        customSearchAreaKeyboard(update, user)
     }
 
     fun setPredefinedSearchArea(update: Update, user: User, searchAreaType: SearchAreaType) {
         userService.setPredefinedSearchArea(user, searchAreaType)
         sendNotification(update.message.chatId, "$searchAreaType is set as search area")
-        mainMenuKeyboard(update, user)
+        userService.setStep(user, MAIN_MENU)
     }
 
     fun setDistance(update: Update, user: User) {
@@ -167,6 +170,11 @@ class Bot(
         sendNotification(update.message.chatId, message)
     }
 
+    fun turnNotificationOff(update: Update, user: User) {
+        userService.turnNotificationOff(user)
+        sendNotification(update.message.chatId, "Notifications are turned off")
+    }
+
     fun sendNotificationAboutBanks(
         chatId: Long,
         banks: List<BankPoint>,
@@ -180,6 +188,7 @@ class Bot(
         }
     }
 
+    @Suppress("SameParameterValue")
     private fun removeKeyBoardAndSendNotification(chatId: Long, responseText: String) {
         val message = SendMessage(chatId.toString(), responseText)
         message.replyMarkup = ReplyKeyboardRemove(true)
@@ -193,10 +202,12 @@ class Bot(
 
     @Suppress("SameParameterValue")
     private fun mainMenuKeyboard(update: Update, user: User) {
-        userService.setStep(user, MAIN_MENU)
         val buttons = listOf(
-            "User info", "Get bank points with money", "Turn notification on",
-            "Set custom search area", "Choose predefined location",
+            "User info",
+            "Get bank points with money",
+            if (user.notificationsTurnOn) "Turn notification off" else "Turn notification on",
+            "Set custom search area",
+            "Choose predefined location",
         )
         val row = KeyboardRow()
         row.addAll(buttons)
@@ -208,8 +219,8 @@ class Bot(
         execute(message)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun customSearchAreaKeyboard(update: Update, user: User) {
-        userService.setStep(user, SET_CUSTOM_SEARCH_AREA)
         val row = KeyboardRow()
         val currentLocationButton = KeyboardButton("Set current location")
         currentLocationButton.requestLocation = true
@@ -224,8 +235,8 @@ class Bot(
         execute(message)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun predefinedSearchAreasKeyboard(update: Update, user: User) {
-        userService.setStep(user, SET_PREDEFINED_SEARCH_AREA)
         val row = KeyboardRow()
         row.add("Vaska")
         row.add("Whole spb")
