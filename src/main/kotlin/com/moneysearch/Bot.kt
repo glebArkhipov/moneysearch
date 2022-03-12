@@ -61,10 +61,6 @@ class Bot(
             "Turn notification on" -> turnNotificationOn(update, user)
             "Set custom search area" -> customSearchAreaKeyboard(update, user)
             "Choose predefined location" -> predefinedSearchAreasKeyboard(update, user)
-            "Set distance from location (meters)" -> {
-                userService.setStep(user, SET_DISTANCE)
-                sendNotification(update.message.chatId, "Please, enter a number")
-            }
             else -> sendNotification(update.message.chatId, "Unknown command")
         }
     }
@@ -75,6 +71,9 @@ class Bot(
             setLocation(update, user)
         } else if (message.text == "Back") {
             returnToMainMenu(update, user)
+        } else if (message.text == "Set distance from location (meters)") {
+            userService.setStep(user, SET_DISTANCE)
+            removeKeyBoardAndSendNotification(update.message.chatId, "Please, enter a number")
         } else {
             sendNotification(update.message.chatId, "Unknown command")
         }
@@ -92,7 +91,7 @@ class Bot(
 
     fun handleSetDistanceCommands(update: Update, user: User) {
         setDistance(update, user)
-        returnToMainMenu(update, user)
+        customSearchAreaKeyboard(update, user)
     }
 
     fun sendUserInfo(update: Update, user: User) {
@@ -176,6 +175,12 @@ class Bot(
         } else if (notifyWhenNoBanks) {
             sendNotification(chatId, "No banks are found")
         }
+    }
+
+    private fun removeKeyBoardAndSendNotification(chatId: Long, responseText: String) {
+        val message = SendMessage(chatId.toString(), responseText)
+        message.replyMarkup = ReplyKeyboardRemove(true)
+        execute(message)
     }
 
     private fun sendNotification(chatId: Long, responseText: String) {
