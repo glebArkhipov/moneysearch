@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 class BankPointsFinder(
     private val bankAdapter: BankApiAdapter
 ) {
-    fun find(currencies: Set<String>, bounds: Bounds): List<BankPoint> =
+    fun find(currencies: Set<Currency>, bounds: Bounds): List<BankPoint> =
         bankAdapter.findBankPoints(currencies, bounds)
 }
 

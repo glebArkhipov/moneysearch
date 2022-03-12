@@ -1,7 +1,6 @@
 package com.moneysearch
 
 import com.moneysearch.SearchAreaType.CUSTOM
-import java.util.*
 import org.springframework.stereotype.Component
 
 @Component
@@ -38,9 +37,21 @@ class UserService(
         userRepository.save(user)
     }
 
-    fun setCurrencies(user: User, currencies: Set<String>) {
+    fun setCurrencies(user: User, currencies: Set<Currency>) {
         user.currencies = currencies
         userRepository.save(user)
+    }
+
+    fun removeCurrency(user: User, currency: Currency) {
+        val currentCurrencies = user.currencies
+        val newCurrencies = currentCurrencies.minus(currency)
+        setCurrencies(user, newCurrencies)
+    }
+
+    fun addCurrency(user: User, currency: Currency) {
+        val currentCurrencies = user.currencies
+        val newCurrencies = currentCurrencies.plus(currency)
+        setCurrencies(user, newCurrencies)
     }
 
     fun turnNotificationOn(user: User) {

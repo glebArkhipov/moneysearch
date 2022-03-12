@@ -19,7 +19,7 @@ data class User(
     val telegramId: Long,
     var chatId: Long,
     var username: String,
-    var currencies: Set<String> = setOf("EUR", "USD", "RUB"),
+    var currencies: Set<Currency> = Currency.values().toSet(),
     var notificationsTurnOn: Boolean = false,
     var searchArea: SearchArea = SearchArea(WHOLE_SPB),
     var step: Step = Step.MAIN_MENU

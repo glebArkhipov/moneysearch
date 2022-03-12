@@ -1,6 +1,8 @@
 package com.moneysearch
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.moneysearch.Action.ADD
+import com.moneysearch.Action.REMOVE
 import com.moneysearch.SearchAreaType.CUSTOM
 import com.moneysearch.SearchAreaType.VASKA
 import com.moneysearch.SearchAreaType.WHOLE_SPB
@@ -24,6 +26,7 @@ class Bot(
     private val bankFinder: BankPointsFinder,
     private val searchAreaTransformer: SearchAreaTransformer,
     private val authorityService: AuthorityService,
+    private val currencyMessageParser: CurrencyMessageParser,
     private val userService: UserService,
     private val jsonObjectMapper: ObjectMapper,
     @Value("\${bot.token}")
@@ -104,30 +107,16 @@ class Bot(
             userService.setStep(user, MAIN_MENU)
             return
         }
-        val actionAndCurrency = text.split(" ")
-        val action = actionAndCurrency.first()
-        val currency = actionAndCurrency.last()
-        if (actionAndCurrency.size > 2) {
-            handleUnknownCommand(update, user)
-            return
-        }
-        if (!setOf("Add", "Remove").contains(action)) {
-            handleUnknownCommand(update, user)
-            return
-        }
-        if (!setOf("RUB", "USD", "EUR").contains(currency)) {
-            handleUnknownCommand(update, user)
-            return
-        }
-        if (action == "Add") {
-            val currencies = user.currencies
-            val newCurrencies = currencies.plus(currency)
-            userService.setCurrencies(user, newCurrencies)
-        }
-        if (action == "Remove") {
-            val currencies = user.currencies
-            val newCurrencies = currencies.minus(currency)
-            userService.setCurrencies(user, newCurrencies)
+        val parsingResult = currencyMessageParser.parseCurrencyMessage(text)
+        when (parsingResult) {
+            is CurrencyParsingFailedResult -> handleUnknownCommand(update, user)
+            is CurrencyParsingSuccessfulResult -> {
+                val (currency, action) = parsingResult
+                when (action) {
+                    ADD -> userService.addCurrency(user, currency)
+                    REMOVE -> userService.removeCurrency(user, currency)
+                }
+            }
         }
     }
 
@@ -289,11 +278,11 @@ class Bot(
 
     fun currencyKeyboard(update: Update, user: User) {
         val currencies = user.currencies
-        val allCurrencies = setOf("RUB", "USD", "EUR")
+        val allCurrencies = Currency.values().toSet()
         val currenciesToRemove = currencies.intersect(allCurrencies)
         val currenciesToAdd = allCurrencies.minus(currencies)
-        val removeButtons = currenciesToRemove.map { "Remove $it" }.toList()
-        val addButtons = currenciesToAdd.map { "Add $it" }.toList()
+        val removeButtons = currenciesToRemove.map { "${REMOVE.string} $it" }.toList()
+        val addButtons = currenciesToAdd.map { "${ADD.string} $it" }.toList()
         val row = KeyboardRow()
         row.addAll(addButtons)
         row.addAll(removeButtons)
