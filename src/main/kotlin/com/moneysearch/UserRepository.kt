@@ -32,5 +32,5 @@ enum class SearchAreaType {
 data class SearchArea (
     val type: SearchAreaType,
     val location: Location? = null,
-    val distanceFromLocation: Long? = null
+    val distanceFromLocation: Long = 2000
 )

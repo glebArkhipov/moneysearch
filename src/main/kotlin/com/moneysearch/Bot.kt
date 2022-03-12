@@ -19,7 +19,7 @@ class Bot(
     private val bankFinder: BankPointsFinder,
     private val searchAreaTransformer: SearchAreaTransformer,
     private val authorityService: AuthorityService,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
     private val jsonObjectMapper: ObjectMapper,
     @Value("\${bot.token}")
     private val botToken: String,
@@ -41,7 +41,7 @@ class Bot(
         }
         val message = update.message
         val userTelegramId = update.message.from.id
-        val user = userRepository.findUserByTelegramId(userTelegramId)
+        val user = userService.findUserByTelegramId(userTelegramId)
         val lastCommand = user.lastCommand
         if (lastCommand == "Set custom search area") {
             if (message.hasLocation()) {
@@ -69,8 +69,7 @@ class Bot(
                 "Set custom search area" -> customSearchAreaKeyboard(update, user)
                 "Choose predefined location" -> definedSearchAreasKeyboard(update, user)
                 "Set distance from location (meters)" -> {
-                    user.lastCommand = "Set distance from location (meters)"
-                    userRepository.save(user)
+                    userService.setLastCommand(user, "Set distance from location (meters)")
                     sendNotification(update.message.chatId, "Please, enter a number")
                 }
             }
@@ -91,16 +90,10 @@ class Bot(
     fun searchAreaInfo(searchArea: SearchArea) = if (searchArea.type == CUSTOM) {
         """
         Custom location is set ${searchArea.location}
-        ${distanceInfo(searchArea)}
+        Distance - ${searchArea.distanceFromLocation}
         """.trim()
     } else {
         "Search area - ${searchArea.type}"
-    }
-
-    fun distanceInfo(searchArea: SearchArea) = if (searchArea.distanceFromLocation != null) {
-        "Distance - ${searchArea.distanceFromLocation}"
-    } else {
-        "No distance is set, default - 100"
     }
 
     fun setLocation(update: Update, user: User) {
@@ -108,19 +101,13 @@ class Bot(
             latitude = update.message.location.latitude,
             longitude = update.message.location.longitude
         )
-        user.searchArea = SearchArea(
-            CUSTOM,
-            location = location,
-            distanceFromLocation = user.searchArea.distanceFromLocation
-        )
-        userRepository.save(user)
+        userService.setCustomLocation(user, location)
         sendNotification(update.message.chatId, "Location is set")
         handleBack(update, user)
     }
 
     fun setSearchArea(update: Update, user: User, searchAreaType: SearchAreaType) {
-        user.searchArea = SearchArea(searchAreaType)
-        userRepository.save(user)
+        userService.setPredefinedSearchArea(user, searchAreaType)
         sendNotification(update.message.chatId, "$searchAreaType is set as location area")
         handleBack(update, user)
     }
@@ -128,12 +115,7 @@ class Bot(
     fun setDistance(update: Update, user: User) {
         try {
             val distance = update.message.text.toLong()
-            user.searchArea = SearchArea(
-                type = user.searchArea.type,
-                location = user.searchArea.location,
-                distanceFromLocation = distance
-            )
-            userRepository.save(user)
+            userService.setDistanceFromLocation(user, distance)
             sendNotification(update.message.chatId, "Distance is set")
         } catch (ex: NumberFormatException) {
             sendNotification(update.message.chatId, "Distance should be a number")
@@ -141,8 +123,7 @@ class Bot(
     }
 
     fun handleBack(update: Update, user: User) {
-        user.lastCommand = null
-        userRepository.save(user)
+        userService.setLastCommand(user, null)
         val message = SendMessage(update.message.chatId.toString(), "Main menu")
         message.replyMarkup = ReplyKeyboardRemove(true)
         execute(message)
@@ -155,8 +136,7 @@ class Bot(
     }
 
     fun turnNotificationOn(update: Update, user: User) {
-        user.notificationsTurnOn = true
-        userRepository.save(user)
+        userService.turnNotificationOn(user)
         val searchAreaMessage = searchAreaInfo(user.searchArea)
         val message = """
             Notification will be send every ~45 seconds
@@ -185,8 +165,7 @@ class Bot(
     }
 
     private fun customSearchAreaKeyboard(update: Update, user: User) {
-        user.lastCommand = "Set custom search area"
-        userRepository.save(user)
+        userService.setLastCommand(user, "Set custom search area")
         val row = KeyboardRow()
         val currentLocationButton = KeyboardButton("Set current location")
         currentLocationButton.requestLocation = true
@@ -202,8 +181,7 @@ class Bot(
     }
 
     private fun definedSearchAreasKeyboard(update: Update, user: User) {
-        user.lastCommand = "Choose predefined location"
-        userRepository.save(user)
+        userService.setLastCommand(user, "Choose predefined location")
         val row = KeyboardRow()
         row.add("Vaska")
         row.add("Whole spb")
