@@ -1,6 +1,7 @@
 package com.moneysearch
 
 import com.moneysearch.SearchAreaType.CUSTOM
+import java.util.*
 import org.springframework.stereotype.Component
 
 @Component
@@ -34,6 +35,11 @@ class UserService(
 
     fun setStep(user: User, step: Step) {
         user.step = step
+        userRepository.save(user)
+    }
+
+    fun setCurrencies(user: User, currencies: Set<String>) {
+        user.currencies = currencies
         userRepository.save(user)
     }
 

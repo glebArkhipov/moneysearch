@@ -5,6 +5,7 @@ import com.moneysearch.SearchAreaType.CUSTOM
 import com.moneysearch.SearchAreaType.VASKA
 import com.moneysearch.SearchAreaType.WHOLE_SPB
 import com.moneysearch.Step.MAIN_MENU
+import com.moneysearch.Step.SET_CURRENCY
 import com.moneysearch.Step.SET_CUSTOM_SEARCH_AREA
 import com.moneysearch.Step.SET_DISTANCE
 import com.moneysearch.Step.SET_PREDEFINED_SEARCH_AREA
@@ -50,6 +51,7 @@ class Bot(
             SET_PREDEFINED_SEARCH_AREA -> handleSetPredefinedSearchAreaCommands(update, user)
             SET_CUSTOM_SEARCH_AREA -> handleSetCustomCustomSearchAreaCommands(update, user)
             SET_DISTANCE -> handleSetDistanceCommands(update, user)
+            SET_CURRENCY -> handleSetCurrencyCommands(update, user)
         }
         returnStepDefaultResponse(update, user)
     }
@@ -63,6 +65,7 @@ class Bot(
             "Turn notification off" -> turnNotificationOff(update, user)
             "Set custom search area" -> userService.setStep(user, SET_CUSTOM_SEARCH_AREA)
             "Choose predefined location" -> userService.setStep(user, SET_PREDEFINED_SEARCH_AREA)
+            "Add or remove currencies" -> userService.setStep(user, SET_CURRENCY)
             else -> handleUnknownCommand(update, user)
         }
     }
@@ -95,6 +98,39 @@ class Bot(
         userService.setStep(user, SET_CUSTOM_SEARCH_AREA)
     }
 
+    fun handleSetCurrencyCommands(update: Update, user: User) {
+        val text = update.message.text
+        if (text == "Back") {
+            userService.setStep(user, MAIN_MENU)
+            return
+        }
+        val actionAndCurrency = text.split(" ")
+        val action = actionAndCurrency.first()
+        val currency = actionAndCurrency.last()
+        if (actionAndCurrency.size > 2) {
+            handleUnknownCommand(update, user)
+            return
+        }
+        if (!setOf("Add", "Remove").contains(action)) {
+            handleUnknownCommand(update, user)
+            return
+        }
+        if (!setOf("RUB", "USD", "EUR").contains(currency)) {
+            handleUnknownCommand(update, user)
+            return
+        }
+        if (action == "Add") {
+            val currencies = user.currencies
+            val newCurrencies = currencies.plus(currency)
+            userService.setCurrencies(user, newCurrencies)
+        }
+        if (action == "Remove") {
+            val currencies = user.currencies
+            val newCurrencies = currencies.minus(currency)
+            userService.setCurrencies(user, newCurrencies)
+        }
+    }
+
     fun handleUnknownCommand(update: Update, user: User) {
         sendNotification(update.message.chatId, "Unknown command")
     }
@@ -104,6 +140,7 @@ class Bot(
             MAIN_MENU -> mainMenuKeyboard(update, user)
             SET_PREDEFINED_SEARCH_AREA -> predefinedSearchAreasKeyboard(update, user)
             SET_CUSTOM_SEARCH_AREA -> customSearchAreaKeyboard(update, user)
+            SET_CURRENCY -> currencyKeyboard(update, user)
             else -> removeKeyBoardAndSendNotification(update.message.chatId, "Please, enter a number")
         }
     }
@@ -208,6 +245,7 @@ class Bot(
             if (user.notificationsTurnOn) "Turn notification off" else "Turn notification on",
             "Set custom search area",
             "Choose predefined location",
+            "Add or remove currencies"
         )
         val row = KeyboardRow()
         row.addAll(buttons)
@@ -244,6 +282,25 @@ class Bot(
         val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
         keyboardMarkup.resizeKeyboard
         val message = SendMessage(update.message.chatId.toString(), "Predefined location:")
+        message.replyMarkup = keyboardMarkup
+
+        execute(message)
+    }
+
+    fun currencyKeyboard(update: Update, user: User) {
+        val currencies = user.currencies
+        val allCurrencies = setOf("RUB", "USD", "EUR")
+        val currenciesToRemove = currencies.intersect(allCurrencies)
+        val currenciesToAdd = allCurrencies.minus(currencies)
+        val removeButtons = currenciesToRemove.map { "Remove $it" }.toList()
+        val addButtons = currenciesToAdd.map { "Add $it" }.toList()
+        val row = KeyboardRow()
+        row.addAll(addButtons)
+        row.addAll(removeButtons)
+        row.add("Back")
+        val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
+        keyboardMarkup.resizeKeyboard
+        val message = SendMessage(update.message.chatId.toString(), "Add or remove currencies")
         message.replyMarkup = keyboardMarkup
 
         execute(message)
