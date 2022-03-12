@@ -1,8 +1,9 @@
 package com.moneysearch
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.moneysearch.SearchArea.VASKA
-import com.moneysearch.SearchArea.WHOLE_SPB
+import com.moneysearch.SearchAreaType.CUSTOM
+import com.moneysearch.SearchAreaType.VASKA
+import com.moneysearch.SearchAreaType.WHOLE_SPB
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -16,7 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 @Component
 class Bot(
     private val bankFinder: BankPointsFinder,
-    private val coordinatesCalculator: CoordinatesCalculator,
+    private val searchAreaTransformer: SearchAreaTransformer,
     private val authorityService: AuthorityService,
     private val userRepository: UserRepository,
     private val jsonObjectMapper: ObjectMapper,
@@ -77,32 +78,27 @@ class Bot(
     }
 
     fun sendUserInfo(update: Update, user: User) {
-        val currenciesInfo = if (user.currencies.isEmpty()) {
-            "No currencies are set, default - ${setOf("EUR", "USD")}"
-        } else {
-            "Currencies - ${user.currencies}"
-        }
-        val searchAreaInfo = if (user.location != null) {
+        val message =
             """
-                Custom location is set ${user.location}
-                ${distanceInfo(user)}
-            """.trimIndent()
-        } else if (user.searchArea != null) {
-            "Search area - ${user.searchArea}"
-        } else {
-            "No search area is set, default - $VASKA"
-        }
-        val message = """
-            $currenciesInfo
-            $searchAreaInfo
+            Currencies - ${user.currencies}
+            ${searchAreaInfo(user.searchArea)}
             Notification - ${if (user.notificationsTurnOn) "on" else "off"}
             Last command - ${user.lastCommand}
-        """.trimIndent()
+            """.lines().joinToString(transform = String::trim, separator = "\n")
         sendNotification(update.message.chatId, message)
     }
 
-    fun distanceInfo(user: User) = if (user.distanceFromLocation != null) {
-        "Distance - ${user.distanceFromLocation}"
+    fun searchAreaInfo(searchArea: SearchArea) = if (searchArea.type == CUSTOM) {
+        """
+        Custom location is set ${searchArea.location}
+        ${distanceInfo(searchArea)}
+        """.trim()
+    } else {
+        "Search area - ${searchArea.type}"
+    }
+
+    fun distanceInfo(searchArea: SearchArea) = if (searchArea.distanceFromLocation != null) {
+        "Distance - ${searchArea.distanceFromLocation}"
     } else {
         "No distance is set, default - 100"
     }
@@ -112,25 +108,31 @@ class Bot(
             latitude = update.message.location.latitude,
             longitude = update.message.location.longitude
         )
-        user.location = location
-        user.searchArea = null
+        user.searchArea = SearchArea(
+            CUSTOM,
+            location = location,
+            distanceFromLocation = user.searchArea.distanceFromLocation
+        )
         userRepository.save(user)
         sendNotification(update.message.chatId, "Location is set")
         handleBack(update, user)
     }
 
-    fun setSearchArea(update: Update, user: User, searchArea: SearchArea) {
-        user.searchArea = searchArea
-        user.location = null
+    fun setSearchArea(update: Update, user: User, searchAreaType: SearchAreaType) {
+        user.searchArea = SearchArea(searchAreaType)
         userRepository.save(user)
-        sendNotification(update.message.chatId, "$searchArea is set as location area")
+        sendNotification(update.message.chatId, "$searchAreaType is set as location area")
         handleBack(update, user)
     }
 
     fun setDistance(update: Update, user: User) {
         try {
             val distance = update.message.text.toLong()
-            user.distanceFromLocation = distance
+            user.searchArea = SearchArea(
+                type = user.searchArea.type,
+                location = user.searchArea.location,
+                distanceFromLocation = distance
+            )
             userRepository.save(user)
             sendNotification(update.message.chatId, "Distance is set")
         } catch (ex: NumberFormatException) {
@@ -147,42 +149,20 @@ class Bot(
     }
 
     fun sendBankPointsWithMoney(update: Update, user: User) {
-        val currencies = user.currencies.ifEmpty {
-            setOf("EUR", "USD")
-        }
-        val banks = if (user.location != null) {
-            val distance = user.distanceFromLocation ?: 1000
-            val bounds = coordinatesCalculator.getBounds(user.location!!, distance)
-            bankFinder.find(currencies, bounds)
-        } else {
-            val searchArea = user.searchArea ?: VASKA
-            bankFinder.find(currencies, searchArea)
-        }
+        val bounds = searchAreaTransformer.searchAreaToBounds(user.searchArea)
+        val banks = bankFinder.find(user.currencies, bounds)
         sendNotificationAboutBanks(update.message.chatId, banks, true)
     }
 
     fun turnNotificationOn(update: Update, user: User) {
-        if (user.searchArea == null && user.location == null) {
-            user.searchArea = VASKA
-        }
-        if (user.location != null && user.distanceFromLocation == null) {
-            user.distanceFromLocation = 1000
-        }
-        if (user.currencies.isEmpty()) {
-            user.currencies = setOf("EUR", "USD")
-        }
         user.notificationsTurnOn = true
         userRepository.save(user)
-        val searchAreaMessage = if (user.location != null) {
-            "Custom location ${user.location} and distance from it ${user.distanceFromLocation}"
-        } else {
-            "Location is ${user.searchArea}"
-        }
+        val searchAreaMessage = searchAreaInfo(user.searchArea)
         val message = """
             Notification will be send every ~45 seconds
             Currencies ${user.currencies}
             $searchAreaMessage
-        """.trimIndent()
+        """.lines().joinToString(transform = String::trim, separator = "\n")
         sendNotification(update.message.chatId, message)
     }
 

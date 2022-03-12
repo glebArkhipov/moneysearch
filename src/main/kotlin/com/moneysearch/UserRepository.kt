@@ -1,5 +1,6 @@
 package com.moneysearch
 
+import com.moneysearch.SearchAreaType.WHOLE_SPB
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
@@ -18,14 +19,18 @@ data class User(
     val telegramId: Long,
     var chatId: Long,
     var username: String,
-    var currencies: Set<String> = emptySet(),
+    var currencies: Set<String> = setOf("EUR", "USD", "RUB"),
     var notificationsTurnOn: Boolean = false,
-    var location: Location? = null,
-    var distanceFromLocation: Long? = null,
-    var searchArea: SearchArea? = null,
+    var searchArea: SearchArea = SearchArea(WHOLE_SPB),
     var lastCommand: String? = null
 )
 
-enum class SearchArea {
-    WHOLE_SPB, VASKA
+enum class SearchAreaType {
+    WHOLE_SPB, VASKA, CUSTOM
 }
+
+data class SearchArea (
+    val type: SearchAreaType,
+    val location: Location? = null,
+    val distanceFromLocation: Long? = null
+)

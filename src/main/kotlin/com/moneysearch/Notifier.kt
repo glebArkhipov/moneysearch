@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 @Component
 class Notifier(
     private val userRepository: UserRepository,
-    private val calculator: CoordinatesCalculator,
+    private val searchAreaTransformer: SearchAreaTransformer,
     private val bankFinder: BankPointsFinder,
     private val bot: Bot
 ) {
@@ -18,18 +18,8 @@ class Notifier(
         val users = userRepository.findAllByNotificationsTurnOn(true)
         println("Users will be notified: users=${users.map { it.username }}")
         users.forEach{ user ->
-            val banks = if (user.searchArea != null) {
-                bankFinder.find(
-                    currencies = user.currencies,
-                    searchArea = user.searchArea!!
-                )
-            } else {
-                val bounds = calculator.getBounds(user.location!!, user.distanceFromLocation!!)
-                bankFinder.find(
-                    currencies = user.currencies,
-                    bounds = bounds
-                )
-            }
+            val bounds = searchAreaTransformer.searchAreaToBounds(user.searchArea)
+            val banks = bankFinder.find(user.currencies, bounds)
             bot.sendNotificationAboutBanks(user.telegramId, banks)
         }
         val randomPart = (Math.random() * 30000).roundToLong()
