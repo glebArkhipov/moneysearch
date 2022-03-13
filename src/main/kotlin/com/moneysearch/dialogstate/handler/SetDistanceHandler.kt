@@ -4,11 +4,7 @@ import com.moneysearch.User
 import com.moneysearch.UserService
 import com.moneysearch.dialogstate.handler.DialogState.SET_CUSTOM_SEARCH_AREA
 import org.springframework.stereotype.Component
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Component
 class SetDistanceHandler(
@@ -41,21 +37,6 @@ class SetDistanceHandler(
         }
     }
 
-    override fun defaultDialogStateResponse(update: Update, user: User): SendMessage {
-        val rows = suggestedCommands
-            .map {
-                KeyboardButton.builder()
-                    .text(it.commandTxt)
-                    .requestLocation(it.requestCurrentLocation)
-                    .build()
-            }
-            .chunked(2)
-            .map { KeyboardRow(it) }
-        val keyboardMarkup = ReplyKeyboardMarkup(rows)
-        keyboardMarkup.resizeKeyboard = true
-        val message = SendMessage(update.message.chatId.toString(), "Please, provide a number")
-        message.replyMarkup = keyboardMarkup
-
-        return message
-    }
+    override fun suggestionForUser(update: Update, user: User): Suggestion =
+        Suggestion("Please, provide a number", suggestedCommands.map { it.toDto() })
 }

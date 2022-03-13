@@ -6,16 +6,12 @@ import com.moneysearch.UserService
 import com.moneysearch.dialogstate.handler.DialogState.MAIN_MENU
 import com.moneysearch.dialogstate.handler.DialogState.SET_DISTANCE
 import org.springframework.stereotype.Component
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Component
 class SetCustomSearchAreaHandler(
     private val userService: UserService
-): DialogStateHandler {
+) : DialogStateHandler {
 
     private val suggestedCommands: List<SuggestedCommand> = listOf(
         SuggestedCommand(
@@ -45,23 +41,8 @@ class SetCustomSearchAreaHandler(
         }
     }
 
-    override fun defaultDialogStateResponse(update: Update, user: User): SendMessage {
-        val rows = suggestedCommands
-            .map {
-                KeyboardButton.builder()
-                    .text(it.commandTxt)
-                    .requestLocation(it.requestCurrentLocation)
-                    .build()
-            }
-            .chunked(2)
-            .map { KeyboardRow(it) }
-        val keyboardMarkup = ReplyKeyboardMarkup(rows)
-        keyboardMarkup.resizeKeyboard = true
-        val message = SendMessage(update.message.chatId.toString(), "You could set location by map")
-        message.replyMarkup = keyboardMarkup
-
-        return message
-    }
+    override fun suggestionForUser(update: Update, user: User): Suggestion =
+        Suggestion("You could set location by map", suggestedCommands.map { it.toDto() })
 
     fun setLocation(update: Update, user: User): HandleResult {
         val location = Location(

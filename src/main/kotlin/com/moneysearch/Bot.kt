@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Component
 class Bot(
@@ -36,7 +39,7 @@ class Bot(
         if (newDialogState != null) {
             userService.setDialogState(user, newDialogState)
         }
-        sendDefaultDialogStateNotification(update, user)
+        sendSuggestionNotification(update, user)
     }
 
     fun sendNotification(user: User, responseText: String) {
@@ -53,9 +56,25 @@ class Bot(
             }
     }
 
-    private fun sendDefaultDialogStateNotification(update: Update, user: User) {
-        val defaultDialogStateResponse = dialogStateHandlerProvider.getHandlerBy(user.dialogState)
-            .defaultDialogStateResponse(update, user)
-        execute(defaultDialogStateResponse)
+    private fun sendSuggestionNotification(update: Update, user: User) {
+        val (suggestionText, suggestedCommands) = dialogStateHandlerProvider.getHandlerBy(user.dialogState)
+            .suggestionForUser(update, user)
+        val rows = suggestedCommands
+            .map {
+                KeyboardButton.builder()
+                    .text(it.commandTxt)
+                    .requestLocation(it.requestCurrentLocation)
+                    .build()
+            }
+            .chunked(2)
+            .map { KeyboardRow(it) }
+        val keyboardMarkup = ReplyKeyboardMarkup(rows)
+        keyboardMarkup.resizeKeyboard = true
+        val message = SendMessage.builder()
+            .chatId(update.message.chatId.toString())
+            .text(suggestionText)
+            .replyMarkup(keyboardMarkup)
+            .build()
+        execute(message)
     }
 }

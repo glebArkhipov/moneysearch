@@ -11,11 +11,7 @@ import com.moneysearch.dialogstate.handler.DialogState.SET_CURRENCY
 import com.moneysearch.dialogstate.handler.DialogState.SET_CUSTOM_SEARCH_AREA
 import com.moneysearch.dialogstate.handler.DialogState.SET_PREDEFINED_SEARCH_AREA
 import org.springframework.stereotype.Component
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Component
 class MainMenuHandler(
@@ -68,22 +64,8 @@ class MainMenuHandler(
         }
     }
 
-    override fun defaultDialogStateResponse(
-        update: Update,
-        user: User
-    ): SendMessage {
-        val rows = suggestedCommands
-            .filter { it.predicateToShow.invoke(update, user) }
-            .map { KeyboardButton(it.commandTxt) }
-            .chunked(2)
-            .map { KeyboardRow(it) }
-        val keyboardMarkup = ReplyKeyboardMarkup(rows)
-        keyboardMarkup.resizeKeyboard = true
-        val txtMessage = "Main menu"
-        val message = SendMessage(update.message.chatId.toString(), txtMessage)
-        message.replyMarkup = keyboardMarkup
-        return message
-    }
+    override fun suggestionForUser(update: Update, user: User): Suggestion =
+        Suggestion("Main menu", suggestedCommands.map { it.toDto() })
 
     private fun userInfo(user: User) =
         HandleResult(

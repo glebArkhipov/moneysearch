@@ -1,12 +1,11 @@
 package com.moneysearch.dialogstate.handler
 
 import com.moneysearch.User
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 
 interface DialogStateHandler {
     fun handleUpdate(update: Update, user: User): HandleResult
-    fun defaultDialogStateResponse(update: Update, user: User): SendMessage
+    fun suggestionForUser(update: Update, user: User): Suggestion
     fun handleUnknownCommand() = HandleResult("Unknown command")
 }
 
@@ -18,3 +17,24 @@ data class HandleResult(
 enum class DialogState {
     MAIN_MENU, SET_PREDEFINED_SEARCH_AREA, SET_CUSTOM_SEARCH_AREA, SET_DISTANCE, SET_CURRENCY
 }
+
+data class Suggestion(
+    val suggestionText: String,
+    val suggestedCommandDTOS: List<SuggestedCommandDTO>
+)
+
+data class SuggestedCommand(
+    val commandTxt: String,
+    val action: ((update: Update, user: User) -> HandleResult),
+    val predicateToShow: (update: Update, user: User) -> Boolean = { _, _ -> true },
+    val requestCurrentLocation: Boolean = false
+)
+
+data class SuggestedCommandDTO(
+    val commandTxt: String,
+    val requestCurrentLocation: Boolean = false
+)
+
+fun SuggestedCommand.toDto(): SuggestedCommandDTO =
+    SuggestedCommandDTO(commandTxt, requestCurrentLocation)
+
