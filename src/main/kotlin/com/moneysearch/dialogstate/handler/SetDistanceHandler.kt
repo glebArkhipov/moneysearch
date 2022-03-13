@@ -6,15 +6,20 @@ import com.moneysearch.dialogstate.handler.DialogState.SET_CUSTOM_SEARCH_AREA
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Component
 class SetDistanceHandler(
     private val userService: UserService
 ): DialogStateHandler {
     override fun handleUpdate(update: Update, user: User): HandleResult {
+        val text = update.message.text
+        if (text == "Back") {
+            return HandleResult(nextDialogState = SET_CUSTOM_SEARCH_AREA)
+        }
         return try {
-            val distance = update.message.text.toLong()
+            val distance = text.toLong()
             userService.setDistanceFromLocation(user, distance)
             HandleResult(
                 txtResponse = "Distance is set",
@@ -26,8 +31,13 @@ class SetDistanceHandler(
     }
 
     override fun defaultDialogStateResponse(update: Update, user: User): SendMessage {
+        val row = KeyboardRow()
+        row.add("Back")
+        val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
+        keyboardMarkup.resizeKeyboard
         val message = SendMessage(update.message.chatId.toString(), "Please, provide a number")
-        message.replyMarkup = ReplyKeyboardRemove(true)
+        message.replyMarkup = keyboardMarkup
+
         return message
     }
 }
