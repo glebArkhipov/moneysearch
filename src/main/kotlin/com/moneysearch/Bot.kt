@@ -1,6 +1,7 @@
 package com.moneysearch
 
 import com.moneysearch.dialogstate.handler.DialogStateHandlerProvider
+import com.moneysearch.dialogstate.handler.Suggestion
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -57,24 +58,27 @@ class Bot(
     }
 
     private fun sendSuggestionNotification(update: Update, user: User) {
-        val (suggestionText, suggestedCommands) = dialogStateHandlerProvider.getHandlerBy(user.dialogState)
+        val suggestion = dialogStateHandlerProvider.getHandlerBy(user.dialogState)
             .suggestionForUser(update, user)
-        val rows = suggestedCommands
-            .map {
-                KeyboardButton.builder()
-                    .text(it.commandTxt)
-                    .requestLocation(it.requestCurrentLocation)
-                    .build()
-            }
-            .chunked(2)
-            .map { KeyboardRow(it) }
-        val keyboardMarkup = ReplyKeyboardMarkup(rows)
-        keyboardMarkup.resizeKeyboard = true
-        val message = SendMessage.builder()
-            .chatId(update.message.chatId.toString())
-            .text(suggestionText)
-            .replyMarkup(keyboardMarkup)
-            .build()
+        val message = suggestion.toSendMessage(update)
         execute(message)
     }
+}
+
+private fun Suggestion.toSendMessage(update: Update): SendMessage {
+    val rows = suggestedCommandDTOS
+        .map {
+            KeyboardButton.builder()
+                .text(it.commandTxt)
+                .requestLocation(it.requestCurrentLocation)
+                .build()
+        }
+        .chunked(2)
+        .map { KeyboardRow(it) }
+    val keyboardMarkup = ReplyKeyboardMarkup(rows)
+    return SendMessage.builder()
+        .chatId(update.message.chatId.toString())
+        .text(suggestionText)
+        .replyMarkup(keyboardMarkup)
+        .build()
 }
