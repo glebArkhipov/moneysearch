@@ -1,6 +1,7 @@
 package com.moneysearch
 
 import com.moneysearch.SearchAreaType.WHOLE_SPB
+import com.moneysearch.dialogstate.handler.DialogState
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
@@ -24,10 +25,6 @@ data class User(
     var searchArea: SearchArea = SearchArea(WHOLE_SPB),
     var dialogState: DialogState = DialogState.MAIN_MENU
 )
-
-enum class DialogState {
-    MAIN_MENU, SET_PREDEFINED_SEARCH_AREA, SET_CUSTOM_SEARCH_AREA, SET_DISTANCE, SET_CURRENCY
-}
 
 enum class SearchAreaType {
     WHOLE_SPB, VASKA, CUSTOM

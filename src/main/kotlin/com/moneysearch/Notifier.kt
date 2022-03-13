@@ -20,7 +20,7 @@ class Notifier(
         users.forEach{ user ->
             val bounds = searchAreaTransformer.searchAreaToBounds(user.searchArea)
             val banks = bankFinder.find(user.currencies, bounds)
-            bot.sendNotificationAboutBanks(user.telegramId, banks)
+            bot.sendNotificationAboutBanks(user, banks)
         }
         val randomPart = (Math.random() * 30000).roundToLong()
         val sleepFor = 30000 + randomPart

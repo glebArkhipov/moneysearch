@@ -22,7 +22,7 @@ class CurrencyMessageParser {
     }
 }
 
-interface CurrencyParsingResult
+sealed interface CurrencyParsingResult
 
 data class CurrencyParsingFailedResult(
     val errorMessage: String
@@ -44,7 +44,6 @@ enum class Action(
 
 enum class Currency {
     EUR, USD, RUB;
-
     companion object {
         fun getCurrencyByString(string: String) = try {
             valueOf(string)

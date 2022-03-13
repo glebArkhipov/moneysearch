@@ -1,6 +1,7 @@
 package com.moneysearch
 
 import com.moneysearch.SearchAreaType.CUSTOM
+import com.moneysearch.dialogstate.handler.DialogState
 import org.springframework.stereotype.Component
 
 @Component
@@ -32,8 +33,8 @@ class UserService(
         userRepository.save(user)
     }
 
-    fun setStep(user: User, step: DialogState) {
-        user.dialogState = step
+    fun setDialogState(user: User, dialogState: DialogState) {
+        user.dialogState = dialogState
         userRepository.save(user)
     }
 
