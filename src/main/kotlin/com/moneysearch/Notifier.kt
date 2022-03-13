@@ -24,7 +24,6 @@ class Notifier(
         users.forEach{ user ->
             val bounds = searchAreaTransformer.searchAreaToBounds(user.searchArea)
             val bankPoints = bankFinder.find(user.currencies, bounds)
-            log.info("Bank points found: number=${bankPoints.size} bankPoints=${bankPoints}")
             if (bankPoints.isNotEmpty()) {
                 val message = bankPointsToMessage.bankPointsToMessage(bankPoints)
                 bot.sendNotification(user, message)

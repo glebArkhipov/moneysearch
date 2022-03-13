@@ -24,6 +24,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.telegram:telegrambots-spring-boot-starter:5.7.1")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb:2.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
