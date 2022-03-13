@@ -2,6 +2,7 @@ package com.moneysearch
 
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.math.roundToLong
+import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -13,22 +14,25 @@ class Notifier(
     private val bankPointsToMessage: BankPointsToMessage,
     private val bot: Bot
 ) {
+    private val log = LoggerFactory.getLogger(Notifier::class.java)
+
     @Scheduled(timeUnit = SECONDS, fixedDelay = 30)
     fun notifyAboutAvailableMoney() {
-        println("Start notifying")
+        log.info("Start notifying")
         val users = userRepository.findAllByNotificationsTurnOn(true)
-        println("Users will be notified: users=${users.map { it.username }}")
+        log.info("Users will be notified: users=${users.map { it.username }}")
         users.forEach{ user ->
             val bounds = searchAreaTransformer.searchAreaToBounds(user.searchArea)
-            val banks = bankFinder.find(user.currencies, bounds)
-            if (banks.isNotEmpty()) {
-                val message = bankPointsToMessage.bankPointsToMessage(banks)
+            val bankPoints = bankFinder.find(user.currencies, bounds)
+            log.info("Bank points found: number=${bankPoints.size} bankPoints=${bankPoints}")
+            if (bankPoints.isNotEmpty()) {
+                val message = bankPointsToMessage.bankPointsToMessage(bankPoints)
                 bot.sendNotification(user, message)
             }
         }
         val randomPart = (Math.random() * 30000).roundToLong()
         val sleepFor = 30000 + randomPart
-        println("Next check in ${sleepFor/1000} seconds")
+        log.info("Next check in ${sleepFor/1000} seconds")
         Thread.sleep(sleepFor)
     }
 }

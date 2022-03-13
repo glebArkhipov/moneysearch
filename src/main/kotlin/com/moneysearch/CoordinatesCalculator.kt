@@ -1,6 +1,7 @@
 package com.moneysearch
 
 import kotlin.math.cos
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 // number of km per degree = ~111km (111.32 in google maps, but range varies
@@ -11,6 +12,8 @@ const val DEGREE_IN_METER = 0.0000089
 
 @Component
 class CoordinatesCalculator {
+
+    private val log = LoggerFactory.getLogger(CoordinatesCalculator::class.java)
 
     //distance has to be in meters
     fun getBounds(location: Location, distance: Long): Bounds {
@@ -28,12 +31,11 @@ class CoordinatesCalculator {
                 lng = topRightLongitude
             )
         )
-        println(
+        log.info(
             """
-            Center lat = ${location.latitude} and lng = ${location.longitude}
-            Distance from center = $distance
-            Bounds = $bounds
-            """.trimIndent()
+            Get bounds: locationLatitude=${location.latitude}, locationLongitude=${location.longitude},
+            distance=$distance, bounds=$bounds
+            """.trimIndent().replace("\n", " ")
         )
         return bounds
     }

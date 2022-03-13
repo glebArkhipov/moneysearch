@@ -1,6 +1,5 @@
 package com.moneysearch
 
-import com.moneysearch.dialogstate.handler.DialogState
 import com.moneysearch.dialogstate.handler.DialogStateHandlerProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -25,10 +24,6 @@ class Bot(
     override fun onUpdateReceived(update: Update) {
         if (!authorityService.checkAuthority(update)) {
             sendNotification(update.message.chatId, "You are not allowed to use this service")
-            return
-        }
-        if (!update.hasMessage()) {
-            println("Update has no message")
             return
         }
         val userTelegramId = update.message.from.id
