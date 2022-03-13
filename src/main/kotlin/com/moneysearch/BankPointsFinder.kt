@@ -13,7 +13,7 @@ class BankPointsFinder(
 data class BankPoint(
     val id: String,
     val address: String,
-    val currenciesToAmount: Map<String, Long>
+    val currenciesToAmount: Map<Currency, Long>
 )
 
 data class Bounds(

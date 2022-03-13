@@ -1,6 +1,6 @@
 package com.moneysearch
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.moneysearch.dialogstate.handler.DialogState
 import com.moneysearch.dialogstate.handler.DialogStateHandlerProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.api.objects.Update
 class Bot(
     private val authorityService: AuthorityService,
     private val userService: UserService,
-    private val jsonObjectMapper: ObjectMapper,
     private val dialogStateHandlerProvider: DialogStateHandlerProvider,
     @Value("\${bot.token}")
     private val botToken: String,
@@ -42,30 +41,21 @@ class Bot(
         if (newDialogState != null) {
             userService.setDialogState(user, newDialogState)
         }
-        val defaultDialogStateResponse = dialogStateHandlerProvider.getHandlerBy(user.dialogState)
-            .defaultDialogStateResponse(update, user)
-        execute(defaultDialogStateResponse)
+        sendDefaultDialogStateNotification(update, user)
     }
 
-    fun sendNotificationAboutBanks(
-        user: User,
-        banks: List<BankPoint>,
-        notifyWhenNoBanks: Boolean = false
-    ) {
-        if (banks.isNotEmpty()) {
-            val banksAsString = jsonObjectMapper.writeValueAsString(banks)
-            sendNotification(user, banksAsString)
-        } else if (notifyWhenNoBanks) {
-            sendNotification(user, "No banks are found")
-        }
-    }
-
-    private fun sendNotification(user: User, responseText: String) {
+    fun sendNotification(user: User, responseText: String) {
         sendNotification(user.chatId, responseText)
     }
 
     private fun sendNotification(chatId: Long, responseText: String) {
         val responseMessage = SendMessage(chatId.toString(), responseText)
         execute(responseMessage)
+    }
+
+    private fun sendDefaultDialogStateNotification(update: Update, user: User) {
+        val defaultDialogStateResponse = dialogStateHandlerProvider.getHandlerBy(user.dialogState)
+            .defaultDialogStateResponse(update, user)
+        execute(defaultDialogStateResponse)
     }
 }

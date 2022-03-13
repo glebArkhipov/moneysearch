@@ -1,7 +1,7 @@
 package com.moneysearch.dialogstate.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.moneysearch.BankPointsFinder
+import com.moneysearch.BankPointsToMessage
 import com.moneysearch.SearchArea
 import com.moneysearch.SearchAreaTransformer
 import com.moneysearch.SearchAreaType.CUSTOM
@@ -18,10 +18,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 
 @Component
 class MainMenuHandler(
-    private val bankFinder: BankPointsFinder,
+    private val bankPointsFinder: BankPointsFinder,
     private val searchAreaTransformer: SearchAreaTransformer,
     private val userService: UserService,
-    private val jsonObjectMapper: ObjectMapper
+    private val bankPointsToMessage: BankPointsToMessage
 ) : DialogStateHandler {
     override fun handleUpdate(update: Update, user: User): HandleResult {
         val message = update.message
@@ -79,12 +79,12 @@ class MainMenuHandler(
 
     private fun bankPointsWithMoney(user: User): HandleResult {
         val bounds = searchAreaTransformer.searchAreaToBounds(user.searchArea)
-        val banks = bankFinder.find(user.currencies, bounds)
-        return if (banks.isNotEmpty()) {
-            val banksAsString = jsonObjectMapper.writeValueAsString(banks)
-            HandleResult(banksAsString)
+        val bankPoints = bankPointsFinder.find(user.currencies, bounds)
+        return if (bankPoints.isNotEmpty()) {
+            val message = bankPointsToMessage.bankPointsToMessage(bankPoints)
+            HandleResult(message)
         } else {
-            HandleResult("No banks are found")
+            HandleResult("No bank points are found")
         }
     }
 

@@ -10,6 +10,7 @@ class Notifier(
     private val userRepository: UserRepository,
     private val searchAreaTransformer: SearchAreaTransformer,
     private val bankFinder: BankPointsFinder,
+    private val bankPointsToMessage: BankPointsToMessage,
     private val bot: Bot
 ) {
     @Scheduled(timeUnit = SECONDS, fixedDelay = 30)
@@ -20,7 +21,10 @@ class Notifier(
         users.forEach{ user ->
             val bounds = searchAreaTransformer.searchAreaToBounds(user.searchArea)
             val banks = bankFinder.find(user.currencies, bounds)
-            bot.sendNotificationAboutBanks(user, banks)
+            if (banks.isNotEmpty()) {
+                val message = bankPointsToMessage.bankPointsToMessage(banks)
+                bot.sendNotification(user, message)
+            }
         }
         val randomPart = (Math.random() * 30000).roundToLong()
         val sleepFor = 30000 + randomPart
