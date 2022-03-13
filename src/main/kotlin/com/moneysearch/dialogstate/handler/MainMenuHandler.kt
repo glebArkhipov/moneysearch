@@ -65,7 +65,12 @@ class MainMenuHandler(
     }
 
     override fun suggestionForUser(update: Update, user: User): Suggestion =
-        Suggestion("Main menu", suggestedCommands.map { it.toDto() })
+        Suggestion(
+            suggestionText = "Main menu",
+            suggestedCommandDTOS = suggestedCommands
+                .filter { it.predicateToShow.invoke(update, user) }
+                .map { it.toDto() }
+        )
 
     private fun userInfo(user: User) =
         HandleResult(
