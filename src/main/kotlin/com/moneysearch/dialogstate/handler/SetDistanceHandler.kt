@@ -34,7 +34,7 @@ class SetDistanceHandler(
         val row = KeyboardRow()
         row.add("Back")
         val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
-        keyboardMarkup.resizeKeyboard
+        keyboardMarkup.resizeKeyboard = true
         val message = SendMessage(update.message.chatId.toString(), "Please, provide a number")
         message.replyMarkup = keyboardMarkup
 

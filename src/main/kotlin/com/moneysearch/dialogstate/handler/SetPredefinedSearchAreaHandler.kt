@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Component
@@ -27,12 +28,14 @@ class SetPredefinedSearchAreaHandler(
     }
 
     override fun defaultDialogStateResponse(update: Update, user: User): SendMessage {
-        val row = KeyboardRow()
-        row.add("Vaska")
-        row.add("Whole spb")
-        row.add("Back")
-        val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
-        keyboardMarkup.resizeKeyboard
+        val buttons = listOf(
+            "Vaska",
+            "Whole spb",
+            "Back"
+        )
+        val rows = buttons.map { KeyboardButton(it) }.chunked(2).map { KeyboardRow(it) }
+        val keyboardMarkup = ReplyKeyboardMarkup(rows)
+        keyboardMarkup.resizeKeyboard = true
         val message = SendMessage(update.message.chatId.toString(), "Choose predefined location")
         message.replyMarkup = keyboardMarkup
 

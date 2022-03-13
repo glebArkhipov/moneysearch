@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Component
@@ -48,12 +49,10 @@ class SetCurrencyHandler(
         val currenciesToAdd = allCurrencies.minus(currencies)
         val removeButtons = currenciesToRemove.map { "${REMOVE.string} $it" }.toList()
         val addButtons = currenciesToAdd.map { "${ADD.string} $it" }.toList()
-        val row = KeyboardRow()
-        row.addAll(addButtons)
-        row.addAll(removeButtons)
-        row.add("Back")
-        val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
-        keyboardMarkup.resizeKeyboard
+        val buttons = removeButtons + addButtons + listOf("Back")
+        val rows = buttons.map { KeyboardButton(it) }.chunked(2).map { KeyboardRow(it) }
+        val keyboardMarkup = ReplyKeyboardMarkup(rows)
+        keyboardMarkup.resizeKeyboard = true
         val message = SendMessage(update.message.chatId.toString(), "Add or remove currencies")
         message.replyMarkup = keyboardMarkup
 

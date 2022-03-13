@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Component
@@ -49,10 +50,9 @@ class MainMenuHandler(
             "Choose predefined location",
             "Add or remove currencies"
         )
-        val row = KeyboardRow()
-        row.addAll(buttons)
-        val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
-        keyboardMarkup.resizeKeyboard
+        val rows = buttons.map { KeyboardButton(it) }.chunked(2).map { KeyboardRow(it) }
+        val keyboardMarkup = ReplyKeyboardMarkup(rows)
+        keyboardMarkup.resizeKeyboard = true
         val txtMessage = "Main menu"
         val message = SendMessage(update.message.chatId.toString(), txtMessage)
         message.replyMarkup = keyboardMarkup

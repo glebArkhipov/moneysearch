@@ -30,14 +30,16 @@ class SetCustomSearchAreaHandler(
     }
 
     override fun defaultDialogStateResponse(update: Update, user: User): SendMessage {
-        val row = KeyboardRow()
-        val currentLocationButton = KeyboardButton("Set current location")
-        currentLocationButton.requestLocation = true
-        row.add(currentLocationButton)
-        row.add("Set distance from location (meters)")
-        row.add("Back")
-        val keyboardMarkup = ReplyKeyboardMarkup(listOf(row))
-        keyboardMarkup.resizeKeyboard
+        val setCurrentLocationButton = KeyboardButton("Set current location")
+        setCurrentLocationButton.requestLocation = true
+        val buttons = listOf(
+            setCurrentLocationButton,
+            KeyboardButton("Set distance from location (meters)"),
+            KeyboardButton("Back")
+        )
+        val rows = buttons.chunked(2).map { KeyboardRow(it) }
+        val keyboardMarkup = ReplyKeyboardMarkup(rows)
+        keyboardMarkup.resizeKeyboard = true
         val message = SendMessage(update.message.chatId.toString(), "You could set location by map")
         message.replyMarkup = keyboardMarkup
 
