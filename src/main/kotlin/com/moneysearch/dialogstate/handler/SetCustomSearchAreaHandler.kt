@@ -16,28 +16,45 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 class SetCustomSearchAreaHandler(
     private val userService: UserService
 ): DialogStateHandler {
+
+    private val suggestedCommands: List<SuggestedCommand> = listOf(
+        SuggestedCommand(
+            commandTxt = "Set current location",
+            action = { update, user -> setLocation(update, user) },
+            requestCurrentLocation = true
+        ),
+        SuggestedCommand(
+            commandTxt = "Set distance from location (meters)",
+            action = { _, _ -> HandleResult(nextDialogState = SET_DISTANCE) },
+        ),
+        SuggestedCommand(
+            commandTxt = "Back",
+            action = { _, _ -> HandleResult(nextDialogState = MAIN_MENU) }
+        )
+    )
+
     override fun handleUpdate(update: Update, user: User): HandleResult {
         val message = update.message
-        return if (message.hasLocation()) {
+        val suggestedCommand = suggestedCommands.find { it.commandTxt == message.text }
+        return if (suggestedCommand != null) {
+            suggestedCommand.action.invoke(update, user)
+        } else if (message.hasLocation()) {
             setLocation(update, user)
-        } else if (message.text == "Back") {
-            HandleResult(nextDialogState = MAIN_MENU)
-        } else if (message.text == "Set distance from location (meters)") {
-            HandleResult(nextDialogState = SET_DISTANCE)
         } else {
             handleUnknownCommand()
         }
     }
 
     override fun defaultDialogStateResponse(update: Update, user: User): SendMessage {
-        val setCurrentLocationButton = KeyboardButton("Set current location")
-        setCurrentLocationButton.requestLocation = true
-        val buttons = listOf(
-            setCurrentLocationButton,
-            KeyboardButton("Set distance from location (meters)"),
-            KeyboardButton("Back")
-        )
-        val rows = buttons.chunked(2).map { KeyboardRow(it) }
+        val rows = suggestedCommands
+            .map {
+                KeyboardButton.builder()
+                    .text(it.commandTxt)
+                    .requestLocation(it.requestCurrentLocation)
+                    .build()
+            }
+            .chunked(2)
+            .map { KeyboardRow(it) }
         val keyboardMarkup = ReplyKeyboardMarkup(rows)
         keyboardMarkup.resizeKeyboard = true
         val message = SendMessage(update.message.chatId.toString(), "You could set location by map")

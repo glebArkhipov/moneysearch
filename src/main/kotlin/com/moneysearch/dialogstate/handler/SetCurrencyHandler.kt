@@ -21,15 +21,25 @@ class SetCurrencyHandler(
     private val userService: UserService,
     private val currencyMessageParser: CurrencyMessageParser
 ) : DialogStateHandler {
+
+    private val suggestedCommands: List<SuggestedCommand> = listOf(
+        SuggestedCommand(
+            commandTxt = "Back",
+            action = { _, _ -> HandleResult(nextDialogState = MAIN_MENU) }
+        )
+    )
+
     override fun handleUpdate(update: Update, user: User): HandleResult {
-        val text = update.message.text
-        if (text == "Back") {
-            return HandleResult(nextDialogState = MAIN_MENU)
-        }
-        val parsingResult = currencyMessageParser.parseCurrencyMessage(text)
-        return when (parsingResult) {
-            is CurrencyParsingFailedResult -> handleUnknownCommand()
-            is CurrencyParsingSuccessfulResult -> changeCurrency(parsingResult, user)
+        val messageTxt = update.message.text
+        val suggestedCommand = suggestedCommands.find { it.commandTxt == messageTxt }
+        return if (suggestedCommand != null) {
+            suggestedCommand.action.invoke(update, user)
+        } else {
+            val parsingResult = currencyMessageParser.parseCurrencyMessage(messageTxt)
+            when (parsingResult) {
+                is CurrencyParsingFailedResult -> handleUnknownCommand()
+                is CurrencyParsingSuccessfulResult -> changeCurrency(parsingResult, user)
+            }
         }
     }
 
@@ -49,7 +59,7 @@ class SetCurrencyHandler(
         val currenciesToAdd = allCurrencies.minus(currencies)
         val removeButtons = currenciesToRemove.map { "${REMOVE.string} $it" }.toList()
         val addButtons = currenciesToAdd.map { "${ADD.string} $it" }.toList()
-        val buttons = removeButtons + addButtons + listOf("Back")
+        val buttons = removeButtons + addButtons + suggestedCommands.map { it.commandTxt }.toList()
         val rows = buttons.map { KeyboardButton(it) }.chunked(2).map { KeyboardRow(it) }
         val keyboardMarkup = ReplyKeyboardMarkup(rows)
         keyboardMarkup.resizeKeyboard = true

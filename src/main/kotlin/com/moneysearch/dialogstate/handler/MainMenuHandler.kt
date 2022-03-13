@@ -24,17 +24,47 @@ class MainMenuHandler(
     private val userService: UserService,
     private val bankPointsToMessage: BankPointsToMessage
 ) : DialogStateHandler {
+
+    private val suggestedCommands: List<SuggestedCommand> = listOf(
+        SuggestedCommand(
+            commandTxt = "User info",
+            action = { _, user -> userInfo(user) }
+        ),
+        SuggestedCommand(
+            commandTxt = "Get bank points with money",
+            action = { _, user -> bankPointsWithMoney(user) }
+        ),
+        SuggestedCommand(
+            commandTxt = "Turn notification on",
+            action = { _, user -> turnNotificationOn(user) },
+            predicateToShow = { _, user -> !user.notificationsTurnOn }
+        ),
+        SuggestedCommand(
+            commandTxt = "Turn notification off",
+            action = { _, user -> turnNotificationOff(user) },
+            predicateToShow = { _, user -> user.notificationsTurnOn }
+        ),
+        SuggestedCommand(
+            commandTxt = "Set custom search area",
+            action = { _, _ -> HandleResult(nextDialogState = SET_CUSTOM_SEARCH_AREA) },
+        ),
+        SuggestedCommand(
+            commandTxt = "Choose predefined location",
+            action = { _, _ -> HandleResult(nextDialogState = SET_PREDEFINED_SEARCH_AREA) },
+        ),
+        SuggestedCommand(
+            commandTxt = "Add or remove currencies",
+            action = { _, _ -> HandleResult(nextDialogState = SET_CURRENCY) },
+        )
+    )
+
     override fun handleUpdate(update: Update, user: User): HandleResult {
-        val message = update.message
-        return when (message.text) {
-            "User info" -> userInfo(user)
-            "Get bank points with money" -> bankPointsWithMoney(user)
-            "Turn notification on" -> turnNotificationOn(update, user)
-            "Turn notification off" -> turnNotificationOff(update, user)
-            "Set custom search area" -> HandleResult(nextDialogState = SET_CUSTOM_SEARCH_AREA)
-            "Choose predefined location" -> HandleResult(nextDialogState = SET_PREDEFINED_SEARCH_AREA)
-            "Add or remove currencies" -> HandleResult(nextDialogState = SET_CURRENCY)
-            else -> handleUnknownCommand()
+        val messageTxt = update.message.text
+        val suggestedCommand = suggestedCommands.find { it.commandTxt == messageTxt }
+        return if (suggestedCommand != null) {
+            suggestedCommand.action.invoke(update, user)
+        } else {
+            handleUnknownCommand()
         }
     }
 
@@ -42,15 +72,11 @@ class MainMenuHandler(
         update: Update,
         user: User
     ): SendMessage {
-        val buttons = listOf(
-            "User info",
-            "Get bank points with money",
-            if (user.notificationsTurnOn) "Turn notification off" else "Turn notification on",
-            "Set custom search area",
-            "Choose predefined location",
-            "Add or remove currencies"
-        )
-        val rows = buttons.map { KeyboardButton(it) }.chunked(2).map { KeyboardRow(it) }
+        val rows = suggestedCommands
+            .filter { it.predicateToShow.invoke(update, user) }
+            .map { KeyboardButton(it.commandTxt) }
+            .chunked(2)
+            .map { KeyboardRow(it) }
         val keyboardMarkup = ReplyKeyboardMarkup(rows)
         keyboardMarkup.resizeKeyboard = true
         val txtMessage = "Main menu"
@@ -88,7 +114,7 @@ class MainMenuHandler(
         }
     }
 
-    fun turnNotificationOn(update: Update, user: User): HandleResult {
+    fun turnNotificationOn(user: User): HandleResult {
         userService.turnNotificationOn(user)
         val searchAreaMessage = searchAreaInfo(user.searchArea)
         val message = """
@@ -99,7 +125,7 @@ class MainMenuHandler(
         return HandleResult(message)
     }
 
-    fun turnNotificationOff(update: Update, user: User): HandleResult {
+    fun turnNotificationOff(user: User): HandleResult {
         userService.turnNotificationOff(user)
         return HandleResult("Notifications are turned off")
     }

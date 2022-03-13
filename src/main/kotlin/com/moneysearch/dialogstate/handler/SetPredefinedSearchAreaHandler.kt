@@ -1,8 +1,7 @@
 package com.moneysearch.dialogstate.handler
 
 import com.moneysearch.SearchAreaType
-import com.moneysearch.SearchAreaType.VASKA
-import com.moneysearch.SearchAreaType.WHOLE_SPB
+import com.moneysearch.SearchAreaType.CUSTOM
 import com.moneysearch.User
 import com.moneysearch.UserService
 import com.moneysearch.dialogstate.handler.DialogState.MAIN_MENU
@@ -16,24 +15,43 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 @Component
 class SetPredefinedSearchAreaHandler(
     private val userService: UserService
-): DialogStateHandler {
+) : DialogStateHandler {
+
+    private val suggestedCommands: List<SuggestedCommand> =
+        SearchAreaType.values().toList()
+            .filter { it != CUSTOM }
+            .map {
+                SuggestedCommand(
+                    commandTxt = it.toString(),
+                    action = { _, user -> setPredefinedSearchArea(user, it) }
+                )
+            } + listOf(
+            SuggestedCommand(
+                commandTxt = "Back",
+                action = { _, _ -> HandleResult(nextDialogState = MAIN_MENU) }
+            )
+        )
+
     override fun handleUpdate(update: Update, user: User): HandleResult {
-        val message = update.message
-        return when (message.text) {
-            "Vaska" -> setPredefinedSearchArea(update, user, VASKA)
-            "Whole spb" -> setPredefinedSearchArea(update, user, WHOLE_SPB)
-            "Back" -> HandleResult(nextDialogState = MAIN_MENU)
-            else -> handleUnknownCommand()
+        val messageTxt = update.message.text
+        val suggestedCommand = suggestedCommands.find { it.commandTxt == messageTxt }
+        return if (suggestedCommand != null) {
+            suggestedCommand.action.invoke(update, user)
+        } else {
+            handleUnknownCommand()
         }
     }
 
     override fun defaultDialogStateResponse(update: Update, user: User): SendMessage {
-        val buttons = listOf(
-            "Vaska",
-            "Whole spb",
-            "Back"
-        )
-        val rows = buttons.map { KeyboardButton(it) }.chunked(2).map { KeyboardRow(it) }
+        val rows = suggestedCommands
+            .map {
+                KeyboardButton.builder()
+                    .text(it.commandTxt)
+                    .requestLocation(it.requestCurrentLocation)
+                    .build()
+            }
+            .chunked(2)
+            .map { KeyboardRow(it) }
         val keyboardMarkup = ReplyKeyboardMarkup(rows)
         keyboardMarkup.resizeKeyboard = true
         val message = SendMessage(update.message.chatId.toString(), "Choose predefined location")
@@ -42,7 +60,7 @@ class SetPredefinedSearchAreaHandler(
         return message
     }
 
-    fun setPredefinedSearchArea(update: Update, user: User, searchAreaType: SearchAreaType): HandleResult {
+    fun setPredefinedSearchArea(user: User, searchAreaType: SearchAreaType): HandleResult {
         userService.setPredefinedSearchArea(user, searchAreaType)
         return HandleResult(
             txtResponse = "$searchAreaType is set as search area",
