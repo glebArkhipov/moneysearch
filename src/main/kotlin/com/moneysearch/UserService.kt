@@ -32,8 +32,8 @@ class UserService(
         userRepository.save(user)
     }
 
-    fun setStep(user: User, step: Step) {
-        user.step = step
+    fun setStep(user: User, step: DialogState) {
+        user.dialogState = step
         userRepository.save(user)
     }
 

@@ -22,10 +22,10 @@ data class User(
     var currencies: Set<Currency> = Currency.values().toSet(),
     var notificationsTurnOn: Boolean = false,
     var searchArea: SearchArea = SearchArea(WHOLE_SPB),
-    var step: Step = Step.MAIN_MENU
+    var dialogState: DialogState = DialogState.MAIN_MENU
 )
 
-enum class Step {
+enum class DialogState {
     MAIN_MENU, SET_PREDEFINED_SEARCH_AREA, SET_CUSTOM_SEARCH_AREA, SET_DISTANCE, SET_CURRENCY
 }
 

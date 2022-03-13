@@ -6,11 +6,11 @@ import com.moneysearch.Action.REMOVE
 import com.moneysearch.SearchAreaType.CUSTOM
 import com.moneysearch.SearchAreaType.VASKA
 import com.moneysearch.SearchAreaType.WHOLE_SPB
-import com.moneysearch.Step.MAIN_MENU
-import com.moneysearch.Step.SET_CURRENCY
-import com.moneysearch.Step.SET_CUSTOM_SEARCH_AREA
-import com.moneysearch.Step.SET_DISTANCE
-import com.moneysearch.Step.SET_PREDEFINED_SEARCH_AREA
+import com.moneysearch.DialogState.MAIN_MENU
+import com.moneysearch.DialogState.SET_CURRENCY
+import com.moneysearch.DialogState.SET_CUSTOM_SEARCH_AREA
+import com.moneysearch.DialogState.SET_DISTANCE
+import com.moneysearch.DialogState.SET_PREDEFINED_SEARCH_AREA
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -49,14 +49,14 @@ class Bot(
         }
         val userTelegramId = update.message.from.id
         val user = userService.findUserByTelegramId(userTelegramId)
-        when (user.step) {
+        when (user.dialogState) {
             MAIN_MENU -> handleMainMenuCommands(update, user)
             SET_PREDEFINED_SEARCH_AREA -> handleSetPredefinedSearchAreaCommands(update, user)
             SET_CUSTOM_SEARCH_AREA -> handleSetCustomCustomSearchAreaCommands(update, user)
             SET_DISTANCE -> handleSetDistanceCommands(update, user)
             SET_CURRENCY -> handleSetCurrencyCommands(update, user)
         }
-        returnStepDefaultResponse(update, user)
+        returnDialogStateDefaultResponse(update, user)
     }
 
     fun handleMainMenuCommands(update: Update, user: User) {
@@ -124,8 +124,8 @@ class Bot(
         sendNotification(update.message.chatId, "Unknown command")
     }
 
-    fun returnStepDefaultResponse(update: Update, user: User) {
-        when (user.step) {
+    fun returnDialogStateDefaultResponse(update: Update, user: User) {
+        when (user.dialogState) {
             MAIN_MENU -> mainMenuKeyboard(update, user)
             SET_PREDEFINED_SEARCH_AREA -> predefinedSearchAreasKeyboard(update, user)
             SET_CUSTOM_SEARCH_AREA -> customSearchAreaKeyboard(update, user)
@@ -140,7 +140,7 @@ class Bot(
             Currencies - ${user.currencies}
             ${searchAreaInfo(user.searchArea)}
             Notification - ${if (user.notificationsTurnOn) "on" else "off"}
-            Current step - ${user.step}
+            Current step - ${user.dialogState}
             """.lines().joinToString(transform = String::trim, separator = "\n")
         sendNotification(update.message.chatId, message)
     }
