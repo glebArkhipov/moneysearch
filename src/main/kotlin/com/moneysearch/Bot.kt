@@ -49,8 +49,13 @@ class Bot(
     }
 
     private fun sendNotification(chatId: Long, responseText: String) {
-        val responseMessage = SendMessage(chatId.toString(), responseText)
-        execute(responseMessage)
+        responseText.split("\n")
+            .chunked(25)
+            .map { it.joinToString("\n") }
+            .forEach { chunk ->
+                val responseMessage = SendMessage(chatId.toString(), chunk)
+                execute(responseMessage)
+            }
     }
 
     private fun sendDefaultDialogStateNotification(update: Update, user: User) {
