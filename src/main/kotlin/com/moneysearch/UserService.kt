@@ -2,14 +2,12 @@ package com.moneysearch
 
 import com.moneysearch.SearchAreaType.CUSTOM
 import com.moneysearch.dialogstate.handler.DialogState
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class UserService(
     private val userRepository: UserRepository
 ) {
-    private val log = LoggerFactory.getLogger(UserService::class.java)
 
     fun findUserByTelegramId(telegramId: Long): User = userRepository.findUserByTelegramId(telegramId)
 
@@ -37,7 +35,6 @@ class UserService(
     }
 
     fun setDialogState(user: User, dialogState: DialogState) {
-        log.debug("State change: oldState=${user.dialogState} newState=${dialogState}")
         user.dialogState = dialogState
         userRepository.save(user)
     }

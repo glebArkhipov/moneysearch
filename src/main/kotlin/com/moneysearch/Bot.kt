@@ -2,6 +2,7 @@ package com.moneysearch
 
 import com.moneysearch.dialogstate.handler.DialogStateHandlerProvider
 import com.moneysearch.dialogstate.handler.Suggestion
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -21,24 +22,35 @@ class Bot(
     @Value("\${bot.username}")
     private val botUsername: String,
 ) : TelegramLongPollingBot() {
+
+    private val log = LoggerFactory.getLogger(Bot::class.java)
+
     override fun getBotToken(): String = botToken
 
     override fun getBotUsername(): String = botUsername
 
     override fun onUpdateReceived(update: Update) {
+        log.debug("update received: userName=${update.message.from.userName} message=${update.message.text}")
         if (!authorityService.checkAuthority(update)) {
             sendNotification(update.message.chatId, "You are not allowed to use this service")
             return
         }
         val userTelegramId = update.message.from.id
         val user = userService.findUserByTelegramId(userTelegramId)
-        val handler = dialogStateHandlerProvider.getHandlerBy(user.dialogState)
+        val initialDialogState = user.dialogState
+        val handler = dialogStateHandlerProvider.getHandlerBy(initialDialogState)
         val (txtResponse, newDialogState) = handler.handleUpdate(update, user)
         if (txtResponse != null) {
             sendNotification(user, txtResponse)
         }
         if (newDialogState != null) {
             userService.setDialogState(user, newDialogState)
+            log.debug(
+                "user dialog state changed: " +
+                    "userName=${user.username} " +
+                    "initialDialogState=${initialDialogState} " +
+                    "newDialogState=${newDialogState}"
+            )
         }
         sendSuggestionNotification(update, user)
     }
