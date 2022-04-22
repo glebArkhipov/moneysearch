@@ -1,5 +1,10 @@
-package com.moneysearch
+package com.moneysearch.jobs
 
+import com.moneysearch.Bot
+import com.moneysearch.repositories.UserRepository
+import com.moneysearch.services.BankPointsFinder
+import com.moneysearch.services.BankPointsToMessage
+import com.moneysearch.services.SearchAreaTransformer
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.math.roundToLong
 import org.slf4j.LoggerFactory

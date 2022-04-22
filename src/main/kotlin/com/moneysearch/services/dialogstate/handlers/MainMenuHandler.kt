@@ -1,15 +1,20 @@
-package com.moneysearch.dialogstate.handler
+package com.moneysearch.services.dialogstate.handlers
 
-import com.moneysearch.BankPointsFinder
-import com.moneysearch.BankPointsToMessage
-import com.moneysearch.SearchArea
-import com.moneysearch.SearchAreaTransformer
-import com.moneysearch.SearchAreaType.CUSTOM
-import com.moneysearch.User
-import com.moneysearch.UserService
-import com.moneysearch.dialogstate.handler.DialogState.SET_CURRENCY
-import com.moneysearch.dialogstate.handler.DialogState.SET_CUSTOM_SEARCH_AREA
-import com.moneysearch.dialogstate.handler.DialogState.SET_PREDEFINED_SEARCH_AREA
+import com.moneysearch.repositories.SearchArea
+import com.moneysearch.repositories.SearchAreaType.CUSTOM
+import com.moneysearch.repositories.User
+import com.moneysearch.services.BankPointsFinder
+import com.moneysearch.services.BankPointsToMessage
+import com.moneysearch.services.SearchAreaTransformer
+import com.moneysearch.services.UserService
+import com.moneysearch.services.dialogstate.DialogState.SET_CURRENCY
+import com.moneysearch.services.dialogstate.DialogState.SET_CUSTOM_SEARCH_AREA
+import com.moneysearch.services.dialogstate.DialogState.SET_PREDEFINED_SEARCH_AREA
+import com.moneysearch.services.dialogstate.DialogStateHandler
+import com.moneysearch.services.dialogstate.HandleResult
+import com.moneysearch.services.dialogstate.SuggestedCommand
+import com.moneysearch.services.dialogstate.Suggestion
+import com.moneysearch.services.dialogstate.toDto
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.objects.Update
 

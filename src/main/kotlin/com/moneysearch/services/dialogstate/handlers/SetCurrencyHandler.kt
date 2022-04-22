@@ -1,4 +1,4 @@
-package com.moneysearch.dialogstate.handler
+package com.moneysearch.services.dialogstate.handlers
 
 import com.moneysearch.Action.ADD
 import com.moneysearch.Action.REMOVE
@@ -6,9 +6,15 @@ import com.moneysearch.Currency
 import com.moneysearch.CurrencyMessageParser
 import com.moneysearch.CurrencyParsingFailedResult
 import com.moneysearch.CurrencyParsingSuccessfulResult
-import com.moneysearch.User
-import com.moneysearch.UserService
-import com.moneysearch.dialogstate.handler.DialogState.MAIN_MENU
+import com.moneysearch.repositories.User
+import com.moneysearch.services.UserService
+import com.moneysearch.services.dialogstate.DialogState.MAIN_MENU
+import com.moneysearch.services.dialogstate.DialogStateHandler
+import com.moneysearch.services.dialogstate.HandleResult
+import com.moneysearch.services.dialogstate.SuggestedCommand
+import com.moneysearch.services.dialogstate.SuggestedCommandDTO
+import com.moneysearch.services.dialogstate.Suggestion
+import com.moneysearch.services.dialogstate.toDto
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.objects.Update
 

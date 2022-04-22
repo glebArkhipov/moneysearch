@@ -3,7 +3,6 @@ package com.moneysearch
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 
-
 class CoordinatesCalculatorTest {
 
     private val vaskaCenterLocation = Location(

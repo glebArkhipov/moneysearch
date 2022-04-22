@@ -1,4 +1,6 @@
-package com.moneysearch
+package com.moneysearch.services
+
+import com.moneysearch.Currency
 
 interface BankApiAdapter {
     fun findBankPoints(currencies: Set<Currency>, bounds: Bounds): List<BankPoint>

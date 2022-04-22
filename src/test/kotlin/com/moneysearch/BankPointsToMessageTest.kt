@@ -2,6 +2,8 @@ package com.moneysearch
 
 import com.moneysearch.Currency.EUR
 import com.moneysearch.Currency.RUB
+import com.moneysearch.services.BankPoint
+import com.moneysearch.services.BankPointsToMessage
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 

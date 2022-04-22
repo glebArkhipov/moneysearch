@@ -1,5 +1,7 @@
-package com.moneysearch
+package com.moneysearch.services
 
+import com.moneysearch.repositories.User
+import com.moneysearch.repositories.UserRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.objects.Update

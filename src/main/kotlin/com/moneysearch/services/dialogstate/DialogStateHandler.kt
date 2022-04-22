@@ -1,6 +1,6 @@
-package com.moneysearch.dialogstate.handler
+package com.moneysearch.services.dialogstate
 
-import com.moneysearch.User
+import com.moneysearch.repositories.User
 import org.telegram.telegrambots.meta.api.objects.Update
 
 interface DialogStateHandler {

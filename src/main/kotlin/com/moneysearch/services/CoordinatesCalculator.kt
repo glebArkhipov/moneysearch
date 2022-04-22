@@ -1,5 +1,7 @@
 package com.moneysearch
 
+import com.moneysearch.services.Bound
+import com.moneysearch.services.Bounds
 import kotlin.math.cos
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

@@ -1,8 +1,11 @@
-package com.moneysearch
+package com.moneysearch.services
 
-import com.moneysearch.SearchAreaType.CUSTOM
-import com.moneysearch.SearchAreaType.VASKA
-import com.moneysearch.SearchAreaType.WHOLE_SPB
+import com.moneysearch.CoordinatesCalculator
+import com.moneysearch.repositories.SearchArea
+import com.moneysearch.repositories.SearchAreaType
+import com.moneysearch.repositories.SearchAreaType.CUSTOM
+import com.moneysearch.repositories.SearchAreaType.VASKA
+import com.moneysearch.repositories.SearchAreaType.WHOLE_SPB
 import org.springframework.stereotype.Component
 
 @Component
@@ -11,7 +14,7 @@ class SearchAreaTransformer(
 ) {
     fun searchAreaToBounds(searchArea: SearchArea): Bounds {
         return if (searchArea.type == CUSTOM) {
-            calculator.getBounds(searchArea.location!!, searchArea.distanceFromLocation!!)
+            calculator.getBounds(searchArea.location!!, searchArea.distanceFromLocation)
         } else {
             searchAreasToBoundsType[searchArea.type]!!
         }

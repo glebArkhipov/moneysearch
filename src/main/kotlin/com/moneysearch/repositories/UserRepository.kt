@@ -1,7 +1,9 @@
-package com.moneysearch
+package com.moneysearch.repositories
 
-import com.moneysearch.SearchAreaType.WHOLE_SPB
-import com.moneysearch.dialogstate.handler.DialogState
+import com.moneysearch.Currency
+import com.moneysearch.Location
+import com.moneysearch.services.dialogstate.DialogState
+import com.moneysearch.repositories.SearchAreaType.WHOLE_SPB
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository

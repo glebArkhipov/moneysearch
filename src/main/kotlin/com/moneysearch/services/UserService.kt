@@ -1,7 +1,13 @@
-package com.moneysearch
+package com.moneysearch.services
 
-import com.moneysearch.SearchAreaType.CUSTOM
-import com.moneysearch.dialogstate.handler.DialogState
+import com.moneysearch.Currency
+import com.moneysearch.Location
+import com.moneysearch.repositories.SearchArea
+import com.moneysearch.repositories.SearchAreaType
+import com.moneysearch.repositories.SearchAreaType.CUSTOM
+import com.moneysearch.repositories.User
+import com.moneysearch.repositories.UserRepository
+import com.moneysearch.services.dialogstate.DialogState
 import org.springframework.stereotype.Component
 
 @Component

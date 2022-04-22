@@ -1,7 +1,10 @@
 package com.moneysearch
 
-import com.moneysearch.dialogstate.handler.DialogStateHandlerProvider
-import com.moneysearch.dialogstate.handler.Suggestion
+import com.moneysearch.repositories.User
+import com.moneysearch.services.AuthorityService
+import com.moneysearch.services.UserService
+import com.moneysearch.services.dialogstate.DialogStateHandlerProvider
+import com.moneysearch.services.dialogstate.Suggestion
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
