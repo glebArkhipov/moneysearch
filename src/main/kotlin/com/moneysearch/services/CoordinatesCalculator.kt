@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component
 // 1m in degree = 0.0089 / 1000 = 0.0000089
 const val DEGREE_IN_METER = 0.0000089
 
+//TODO this component should be improved, remove magic numbers, describe calculations
 @Component
 class CoordinatesCalculator {
 
