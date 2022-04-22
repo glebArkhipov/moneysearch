@@ -2,6 +2,16 @@
 
 Telegram bot that sends notifications about bank points that have money of particular currency and in particular location
 
+## User stories
+1) User can choose currencies
+2) User can choose predefined area: Vaska or whole SPB
+3) User can set custom area by choosing point on map and distance from this point
+4) User can get list of bank points that satisfies search criteria
+5) User can turn on/off notifications 
+6) User can see what he/she chose
+
+## What is needed to make bot work
+
 `BankApiAdapter` has to be implemented in order to get notifications
 
 Also `.env` has to contain three values
