@@ -19,14 +19,16 @@ class AuthorityService(
 
     fun checkAuthority(update: Update): Boolean {
         val userName = update.message.from.userName
-        val chatId = update.message.chatId
         val userTelegramId = update.message.from.id
+        if (!update.message.isUserMessage) {
+            log.info("only messages from user chat are allowed: telegramId=${userTelegramId} userName=${userName}")
+            return false
+        }
         if (!userRepository.existsUserByTelegramId(userTelegramId)) {
             log.info("new user created: telegramId=${userTelegramId} userName=${userName}")
             userRepository.save(
                 User(
                     telegramId = userTelegramId,
-                    chatId = chatId,
                     username = userName
                 )
             )

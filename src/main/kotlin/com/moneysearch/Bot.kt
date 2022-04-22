@@ -59,7 +59,7 @@ class Bot(
     }
 
     fun sendNotification(user: User, responseText: String) {
-        sendNotification(user.chatId, responseText)
+        sendNotification(user.telegramId, responseText)
     }
 
     private fun sendNotification(chatId: Long, responseText: String) {

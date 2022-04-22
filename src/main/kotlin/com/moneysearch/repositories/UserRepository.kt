@@ -20,7 +20,6 @@ interface UserRepository: MongoRepository<User, Long> {
 data class User(
     @Id
     val telegramId: Long,
-    var chatId: Long,
     var username: String,
     var currencies: Set<Currency> = Currency.values().toSet(),
     var notificationsTurnOn: Boolean = false,
