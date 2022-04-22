@@ -15,14 +15,16 @@ class AuthorityService(
     private val allowedUsers: String,
 ) {
 
+    private val allowedUsersSet = allowedUsers.split(",")
+
     private val log = LoggerFactory.getLogger(AuthorityService::class.java)
 
-    fun checkAuthority(update: Update): Boolean {
+    fun checkAuthority(update: Update): AuthCheckResult {
         val userName = update.message.from.userName
         val userTelegramId = update.message.from.id
         if (!update.message.isUserMessage) {
             log.info("only messages from user chat are allowed: telegramId=${userTelegramId} userName=${userName}")
-            return false
+            return AuthCheckFailedResult("Only messages from user chat are allowed")
         }
         if (!userRepository.existsUserByTelegramId(userTelegramId)) {
             log.info("new user created: telegramId=${userTelegramId} userName=${userName}")
@@ -33,12 +35,22 @@ class AuthorityService(
                 )
             )
         }
-        val allowedUsersSet = allowedUsers.split(",")
-        val userAuthorized = allowedUsersSet.contains(userName)
         log.info("user attempt to access service: userName=${userName} telegramId=${userTelegramId}")
-        if (!userAuthorized) {
+        return if (allowedUsersSet.contains(userName)) {
+            AuthCheckSuccessfulResult(userRepository.findUserByTelegramId(userTelegramId))
+        } else {
             log.info("user is not authorized: userName=${userName} telegramId=${userTelegramId}")
+            AuthCheckFailedResult("You are not allowed to use bot")
         }
-        return userAuthorized
     }
 }
+
+sealed interface AuthCheckResult
+
+data class AuthCheckFailedResult(
+    val errorMessage: String
+) : AuthCheckResult
+
+data class AuthCheckSuccessfulResult(
+    val user: User
+) : AuthCheckResult

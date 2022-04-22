@@ -1,6 +1,8 @@
 package com.moneysearch
 
 import com.moneysearch.repositories.User
+import com.moneysearch.services.AuthCheckFailedResult
+import com.moneysearch.services.AuthCheckSuccessfulResult
 import com.moneysearch.services.AuthorityService
 import com.moneysearch.services.UserService
 import com.moneysearch.services.dialogstate.DialogStateHandlerProvider
@@ -34,28 +36,28 @@ class Bot(
 
     override fun onUpdateReceived(update: Update) {
         log.debug("update received: userName=${update.message.from.userName} message=${update.message.text}")
-        if (!authorityService.checkAuthority(update)) {
-            sendNotification(update.message.chatId, "You are not allowed to use this service")
-            return
+        when (val checkAuthorityResult = authorityService.checkAuthority(update)) {
+            is AuthCheckFailedResult -> sendNotification(update.message.chatId, checkAuthorityResult.errorMessage)
+            is AuthCheckSuccessfulResult -> {
+                val user = checkAuthorityResult.user
+                val initialDialogState = user.dialogState
+                val handler = dialogStateHandlerProvider.getHandlerBy(initialDialogState)
+                val (txtResponse, newDialogState) = handler.handleUpdate(update, user)
+                if (txtResponse != null) {
+                    sendNotification(user, txtResponse)
+                }
+                if (newDialogState != null) {
+                    userService.setDialogState(user, newDialogState)
+                    log.debug(
+                        "user dialog state changed: " +
+                            "userName=${user.username} " +
+                            "initialDialogState=${initialDialogState} " +
+                            "newDialogState=${newDialogState}"
+                    )
+                }
+                sendSuggestionNotification(update, user)
+            }
         }
-        val userTelegramId = update.message.from.id
-        val user = userService.findUserByTelegramId(userTelegramId)
-        val initialDialogState = user.dialogState
-        val handler = dialogStateHandlerProvider.getHandlerBy(initialDialogState)
-        val (txtResponse, newDialogState) = handler.handleUpdate(update, user)
-        if (txtResponse != null) {
-            sendNotification(user, txtResponse)
-        }
-        if (newDialogState != null) {
-            userService.setDialogState(user, newDialogState)
-            log.debug(
-                "user dialog state changed: " +
-                    "userName=${user.username} " +
-                    "initialDialogState=${initialDialogState} " +
-                    "newDialogState=${newDialogState}"
-            )
-        }
-        sendSuggestionNotification(update, user)
     }
 
     fun sendNotification(user: User, responseText: String) {
