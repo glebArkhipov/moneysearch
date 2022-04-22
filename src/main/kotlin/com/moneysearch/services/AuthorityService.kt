@@ -35,7 +35,7 @@ class AuthorityService(
                 )
             )
         }
-        log.info("user attempt to access service: userName=${userName} telegramId=${userTelegramId}")
+        log.info("user attempt to access service: userName=${userName} telegramId=${userTelegramId} message=${update.message.text}")
         return if (allowedUsersSet.contains(userName)) {
             AuthCheckSuccessfulResult(userRepository.findUserByTelegramId(userTelegramId))
         } else {
