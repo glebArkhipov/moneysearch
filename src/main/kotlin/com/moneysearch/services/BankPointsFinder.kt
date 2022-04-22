@@ -15,6 +15,13 @@ class BankPointsFinder(
 
     fun find(currencies: Set<Currency>, bounds: Bounds): List<BankPoint> {
         val bankPoints = bankAdapter.findBankPoints(currencies, bounds)
+            .map { bankPoint ->
+                BankPoint(
+                    id = bankPoint.id,
+                    address = bankPoint.address,
+                    currenciesToAmount = bankPoint.currenciesToAmount.filter { currencies.contains(it.key) }
+                )
+            }
         log.info("Bank points found: number=${bankPoints.size} bankPoints=${bankPoints}")
         return bankPoints
     }
