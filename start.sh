@@ -1,3 +1,4 @@
+unset COMPOSE_FILE
 docker-compose down --volumes
 if [[ $1 != "-no-build" ]] ; then
   ./gradlew clean build -x test && docker build -t moneysearch-backend:latest .
