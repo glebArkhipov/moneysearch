@@ -1,9 +1,9 @@
 package com.moneysearch.repositories
 
-import com.moneysearch.Currency
 import com.moneysearch.Location
 import com.moneysearch.services.dialogstate.DialogState
 import com.moneysearch.repositories.SearchAreaType.WHOLE_SPB
+import java.lang.IllegalArgumentException
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
@@ -37,3 +37,14 @@ data class SearchArea (
     val location: Location? = null,
     val distanceFromLocation: Long = 2000
 )
+
+enum class Currency {
+    EUR, USD, RUB;
+    companion object {
+        fun getCurrencyByString(string: String) = try {
+            valueOf(string)
+        } catch (ex: IllegalArgumentException) {
+            null
+        }
+    }
+}

@@ -2,10 +2,10 @@ package com.moneysearch.services.dialogstate.handlers
 
 import com.moneysearch.Action.ADD
 import com.moneysearch.Action.REMOVE
-import com.moneysearch.Currency
 import com.moneysearch.CurrencyMessageParser
 import com.moneysearch.CurrencyParsingFailedResult
 import com.moneysearch.CurrencyParsingSuccessfulResult
+import com.moneysearch.repositories.Currency
 import com.moneysearch.repositories.User
 import com.moneysearch.services.UserService
 import com.moneysearch.services.dialogstate.DialogState.MAIN_MENU

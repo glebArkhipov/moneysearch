@@ -1,6 +1,6 @@
 package com.moneysearch
 
-import java.lang.IllegalArgumentException
+import com.moneysearch.repositories.Currency
 import org.springframework.stereotype.Component
 
 @Component
@@ -26,29 +26,19 @@ sealed interface CurrencyParsingResult
 
 data class CurrencyParsingFailedResult(
     val errorMessage: String
-): CurrencyParsingResult
+) : CurrencyParsingResult
 
 data class CurrencyParsingSuccessfulResult(
     val currency: Currency,
     val action: Action
-): CurrencyParsingResult
+) : CurrencyParsingResult
 
 enum class Action(
     val string: String
 ) {
     ADD("Add"), REMOVE("Remove");
+
     companion object {
         fun getActionByString(string: String) = values().find { it.string == string }
-    }
-}
-
-enum class Currency {
-    EUR, USD, RUB;
-    companion object {
-        fun getCurrencyByString(string: String) = try {
-            valueOf(string)
-        } catch (ex: IllegalArgumentException) {
-            null
-        }
     }
 }

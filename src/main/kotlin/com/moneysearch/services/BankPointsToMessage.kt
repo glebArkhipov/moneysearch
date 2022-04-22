@@ -1,6 +1,6 @@
 package com.moneysearch.services
 
-import com.moneysearch.Currency
+import com.moneysearch.repositories.Currency
 import org.springframework.stereotype.Component
 
 @Component

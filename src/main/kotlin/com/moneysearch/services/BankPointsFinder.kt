@@ -1,7 +1,7 @@
 package com.moneysearch.services
 
 import com.fasterxml.jackson.databind.json.JsonMapper
-import com.moneysearch.Currency
+import com.moneysearch.repositories.Currency
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
