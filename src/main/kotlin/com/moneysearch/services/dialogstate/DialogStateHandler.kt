@@ -1,13 +1,18 @@
 package com.moneysearch.services.dialogstate
 
+import com.moneysearch.Location
 import com.moneysearch.repositories.User
-import org.telegram.telegrambots.meta.api.objects.Update
 
 interface DialogStateHandler {
-    fun handleUpdate(update: Update, user: User): HandleResult
+    fun handleRequest(request: Request, user: User): HandleResult
     fun suggestionForUser(user: User): Suggestion
     fun handleUnknownCommand() = HandleResult("Unknown command")
 }
+
+data class Request(
+    val message: String?,
+    val location: Location?
+)
 
 data class HandleResult(
     val txtResponse: String? = null,
@@ -25,7 +30,7 @@ data class Suggestion(
 
 data class SuggestedCommand(
     val commandTxt: String,
-    val action: ((update: Update, user: User) -> HandleResult),
+    val action: ((request: Request, user: User) -> HandleResult),
     val predicateToShow: (user: User) -> Boolean = { _ -> true },
     val requestCurrentLocation: Boolean = false
 )

@@ -14,9 +14,9 @@ import com.moneysearch.services.dialogstate.DialogStateHandler
 import com.moneysearch.services.dialogstate.HandleResult
 import com.moneysearch.services.dialogstate.SuggestedCommand
 import com.moneysearch.services.dialogstate.Suggestion
+import com.moneysearch.services.dialogstate.Request
 import com.moneysearch.services.dialogstate.toDto
 import org.springframework.stereotype.Component
-import org.telegram.telegrambots.meta.api.objects.Update
 
 @Component
 class MainMenuHandler(
@@ -59,11 +59,10 @@ class MainMenuHandler(
         )
     )
 
-    override fun handleUpdate(update: Update, user: User): HandleResult {
-        val messageTxt = update.message.text
-        val suggestedCommand = suggestedCommands.find { it.commandTxt == messageTxt }
+    override fun handleRequest(request: Request, user: User): HandleResult {
+        val suggestedCommand = suggestedCommands.find { it.commandTxt == request.message }
         return if (suggestedCommand != null) {
-            suggestedCommand.action.invoke(update, user)
+            suggestedCommand.action.invoke(request, user)
         } else {
             handleUnknownCommand()
         }

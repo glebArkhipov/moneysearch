@@ -7,9 +7,9 @@ import com.moneysearch.services.dialogstate.DialogStateHandler
 import com.moneysearch.services.dialogstate.HandleResult
 import com.moneysearch.services.dialogstate.SuggestedCommand
 import com.moneysearch.services.dialogstate.Suggestion
+import com.moneysearch.services.dialogstate.Request
 import com.moneysearch.services.dialogstate.toDto
 import org.springframework.stereotype.Component
-import org.telegram.telegrambots.meta.api.objects.Update
 
 @Component
 class SetDistanceHandler(
@@ -23,14 +23,13 @@ class SetDistanceHandler(
         )
     )
 
-    override fun handleUpdate(update: Update, user: User): HandleResult {
-        val messageTxt = update.message.text
-        val suggestedCommand = suggestedCommands.find { it.commandTxt == messageTxt }
+    override fun handleRequest(request: Request, user: User): HandleResult {
+        val suggestedCommand = suggestedCommands.find { it.commandTxt == request.message }
         return if (suggestedCommand != null) {
-            suggestedCommand.action.invoke(update, user)
-        } else {
+            suggestedCommand.action.invoke(request, user)
+        } else if (request.message != null) {
             try {
-                val distance = messageTxt.toLong()
+                val distance = request.message.toLong()
                 userService.setDistanceFromLocation(user, distance)
                 HandleResult(
                     txtResponse = "Distance is set",
@@ -39,6 +38,8 @@ class SetDistanceHandler(
             } catch (ex: NumberFormatException) {
                 HandleResult("Distance should be a number")
             }
+        } else {
+            handleUnknownCommand()
         }
     }
 

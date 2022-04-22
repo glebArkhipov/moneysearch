@@ -9,9 +9,9 @@ import com.moneysearch.services.dialogstate.DialogStateHandler
 import com.moneysearch.services.dialogstate.HandleResult
 import com.moneysearch.services.dialogstate.SuggestedCommand
 import com.moneysearch.services.dialogstate.Suggestion
+import com.moneysearch.services.dialogstate.Request
 import com.moneysearch.services.dialogstate.toDto
 import org.springframework.stereotype.Component
-import org.telegram.telegrambots.meta.api.objects.Update
 
 @Component
 class SetCustomSearchAreaHandler(
@@ -21,7 +21,7 @@ class SetCustomSearchAreaHandler(
     private val suggestedCommands: List<SuggestedCommand> = listOf(
         SuggestedCommand(
             commandTxt = "Set current location",
-            action = { update, user -> setLocation(update, user) },
+            action = { request, user -> setLocation(request.location!!, user) },
             requestCurrentLocation = true
         ),
         SuggestedCommand(
@@ -34,13 +34,12 @@ class SetCustomSearchAreaHandler(
         )
     )
 
-    override fun handleUpdate(update: Update, user: User): HandleResult {
-        val message = update.message
-        val suggestedCommand = suggestedCommands.find { it.commandTxt == message.text }
+    override fun handleRequest(request: Request, user: User): HandleResult {
+        val suggestedCommand = suggestedCommands.find { it.commandTxt == request.message }
         return if (suggestedCommand != null) {
-            suggestedCommand.action.invoke(update, user)
-        } else if (message.hasLocation()) {
-            setLocation(update, user)
+            suggestedCommand.action.invoke(request, user)
+        } else if (request.location != null) {
+            setLocation(request.location, user)
         } else {
             handleUnknownCommand()
         }
@@ -49,11 +48,7 @@ class SetCustomSearchAreaHandler(
     override fun suggestionForUser(user: User): Suggestion =
         Suggestion("You could set location by map", suggestedCommands.map { it.toDto() })
 
-    fun setLocation(update: Update, user: User): HandleResult {
-        val location = Location(
-            latitude = update.message.location.latitude,
-            longitude = update.message.location.longitude
-        )
+    fun setLocation(location: Location, user: User): HandleResult {
         userService.setCustomLocation(user, location)
         return HandleResult("Custom location $location is set")
     }

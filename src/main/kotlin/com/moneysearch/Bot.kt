@@ -6,12 +6,14 @@ import com.moneysearch.services.AuthCheckSuccessfulResult
 import com.moneysearch.services.AuthorityService
 import com.moneysearch.services.UserService
 import com.moneysearch.services.dialogstate.DialogStateHandlerProvider
+import com.moneysearch.services.dialogstate.Request
 import com.moneysearch.services.dialogstate.Suggestion
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.Location
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
@@ -42,7 +44,7 @@ class Bot(
                 val user = checkAuthorityResult.user
                 val initialDialogState = user.dialogState
                 val handler = dialogStateHandlerProvider.getHandlerBy(initialDialogState)
-                val (txtResponse, newDialogState) = handler.handleUpdate(update, user)
+                val (txtResponse, newDialogState) = handler.handleRequest(update.toRequest(), user)
                 if (txtResponse != null) {
                     sendNotification(user, txtResponse)
                 }
@@ -99,3 +101,14 @@ private fun Suggestion.toSendMessage(update: Update): SendMessage {
         .replyMarkup(keyboardMarkup)
         .build()
 }
+
+private fun Update.toRequest() =
+    Request(
+        message.text,
+        message?.location?.toLocation()
+    )
+
+private fun Location.toLocation() = Location(
+    longitude = longitude,
+    latitude = latitude
+)

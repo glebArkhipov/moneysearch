@@ -14,9 +14,9 @@ import com.moneysearch.services.dialogstate.HandleResult
 import com.moneysearch.services.dialogstate.SuggestedCommand
 import com.moneysearch.services.dialogstate.SuggestedCommandDTO
 import com.moneysearch.services.dialogstate.Suggestion
+import com.moneysearch.services.dialogstate.Request
 import com.moneysearch.services.dialogstate.toDto
 import org.springframework.stereotype.Component
-import org.telegram.telegrambots.meta.api.objects.Update
 
 @Component
 class SetCurrencyHandler(
@@ -31,17 +31,17 @@ class SetCurrencyHandler(
         )
     )
 
-    override fun handleUpdate(update: Update, user: User): HandleResult {
-        val messageTxt = update.message.text
-        val suggestedCommand = suggestedStaticCommands.find { it.commandTxt == messageTxt }
+    override fun handleRequest(request: Request, user: User): HandleResult {
+        val suggestedCommand = suggestedStaticCommands.find { it.commandTxt == request.message }
         return if (suggestedCommand != null) {
-            suggestedCommand.action.invoke(update, user)
-        } else {
-            val parsingResult = currencyMessageParser.parseCurrencyMessage(messageTxt)
-            when (parsingResult) {
+            suggestedCommand.action.invoke(request, user)
+        } else if (request.message != null) {
+            when (val parsingResult = currencyMessageParser.parseCurrencyMessage(request.message)) {
                 is CurrencyParsingFailedResult -> handleUnknownCommand()
                 is CurrencyParsingSuccessfulResult -> changeCurrency(parsingResult, user)
             }
+        } else {
+            handleUnknownCommand()
         }
     }
 
