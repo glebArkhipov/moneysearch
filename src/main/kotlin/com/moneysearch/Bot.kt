@@ -76,7 +76,7 @@ class Bot(
 
     private fun sendSuggestionNotification(update: Update, user: User) {
         val suggestion = dialogStateHandlerProvider.getHandlerBy(user.dialogState)
-            .suggestionForUser(update, user)
+            .suggestionForUser(user)
         val message = suggestion.toSendMessage(update)
         execute(message)
     }

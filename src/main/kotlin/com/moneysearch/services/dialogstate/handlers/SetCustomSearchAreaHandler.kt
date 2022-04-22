@@ -46,7 +46,7 @@ class SetCustomSearchAreaHandler(
         }
     }
 
-    override fun suggestionForUser(update: Update, user: User): Suggestion =
+    override fun suggestionForUser(user: User): Suggestion =
         Suggestion("You could set location by map", suggestedCommands.map { it.toDto() })
 
     fun setLocation(update: Update, user: User): HandleResult {

@@ -54,7 +54,7 @@ class SetCurrencyHandler(
         return HandleResult(txtResponse = "Currencies are ${user.currencies}")
     }
 
-    override fun suggestionForUser(update: Update, user: User): Suggestion {
+    override fun suggestionForUser(user: User): Suggestion {
         val currencyChangeSuggestions = getCurrencyChangeSuggestions(user)
         val suggestedCommandDTOS =
             currencyChangeSuggestions.map { SuggestedCommandDTO(it) } +

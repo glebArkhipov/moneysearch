@@ -43,7 +43,7 @@ class SetPredefinedSearchAreaHandler(
         }
     }
 
-    override fun suggestionForUser(update: Update, user: User): Suggestion =
+    override fun suggestionForUser(user: User): Suggestion =
         Suggestion("Choose predefined location", suggestedCommands.map { it.toDto() })
 
     fun setPredefinedSearchArea(user: User, searchAreaType: SearchAreaType): HandleResult {

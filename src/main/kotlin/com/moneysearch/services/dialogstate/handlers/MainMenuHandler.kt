@@ -38,12 +38,12 @@ class MainMenuHandler(
         SuggestedCommand(
             commandTxt = "Turn notification on",
             action = { _, user -> turnNotificationOn(user) },
-            predicateToShow = { _, user -> !user.notificationsTurnOn }
+            predicateToShow = { user -> !user.notificationsTurnOn }
         ),
         SuggestedCommand(
             commandTxt = "Turn notification off",
             action = { _, user -> turnNotificationOff(user) },
-            predicateToShow = { _, user -> user.notificationsTurnOn }
+            predicateToShow = { user -> user.notificationsTurnOn }
         ),
         SuggestedCommand(
             commandTxt = "Set custom search area",
@@ -69,11 +69,11 @@ class MainMenuHandler(
         }
     }
 
-    override fun suggestionForUser(update: Update, user: User): Suggestion =
+    override fun suggestionForUser(user: User): Suggestion =
         Suggestion(
             suggestionText = "Main menu",
             suggestedCommandDTOS = suggestedCommands
-                .filter { it.predicateToShow.invoke(update, user) }
+                .filter { it.predicateToShow.invoke(user) }
                 .map { it.toDto() }
         )
 

@@ -5,7 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.Update
 
 interface DialogStateHandler {
     fun handleUpdate(update: Update, user: User): HandleResult
-    fun suggestionForUser(update: Update, user: User): Suggestion
+    fun suggestionForUser(user: User): Suggestion
     fun handleUnknownCommand() = HandleResult("Unknown command")
 }
 
@@ -26,7 +26,7 @@ data class Suggestion(
 data class SuggestedCommand(
     val commandTxt: String,
     val action: ((update: Update, user: User) -> HandleResult),
-    val predicateToShow: (update: Update, user: User) -> Boolean = { _, _ -> true },
+    val predicateToShow: (user: User) -> Boolean = { _ -> true },
     val requestCurrentLocation: Boolean = false
 )
 

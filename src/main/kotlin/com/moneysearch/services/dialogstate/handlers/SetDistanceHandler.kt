@@ -42,6 +42,6 @@ class SetDistanceHandler(
         }
     }
 
-    override fun suggestionForUser(update: Update, user: User): Suggestion =
+    override fun suggestionForUser(user: User): Suggestion =
         Suggestion("Please, provide a number", suggestedCommands.map { it.toDto() })
 }
