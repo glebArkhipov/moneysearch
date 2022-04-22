@@ -108,7 +108,7 @@ private fun Update.toRequest() =
         message?.location?.toLocation()
     )
 
-private fun Location.toLocation() = Location(
+private fun Location.toLocation() = com.moneysearch.repositories.Location(
     longitude = longitude,
     latitude = latitude
 )

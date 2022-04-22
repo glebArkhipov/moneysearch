@@ -1,7 +1,6 @@
-package com.moneysearch
+package com.moneysearch.services
 
-import com.moneysearch.services.Bound
-import com.moneysearch.services.Bounds
+import com.moneysearch.repositories.Location
 import kotlin.math.cos
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -48,8 +47,3 @@ class CoordinatesCalculator {
     private fun findLongitude(oldLongitude: Double, latitude: Double, distance: Long): Double =
         oldLongitude + distance * DEGREE_IN_METER / cos(latitude * 0.018)
 }
-
-data class Location(
-    val longitude: Double,
-    val latitude: Double
-)

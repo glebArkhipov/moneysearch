@@ -1,7 +1,7 @@
 package com.moneysearch.services
 
-import com.moneysearch.Location
 import com.moneysearch.repositories.Currency
+import com.moneysearch.repositories.Location
 import com.moneysearch.repositories.SearchArea
 import com.moneysearch.repositories.SearchAreaType
 import com.moneysearch.repositories.SearchAreaType.CUSTOM

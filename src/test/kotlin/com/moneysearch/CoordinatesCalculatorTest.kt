@@ -1,5 +1,7 @@
 package com.moneysearch
 
+import com.moneysearch.repositories.Location
+import com.moneysearch.services.CoordinatesCalculator
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 

@@ -1,6 +1,6 @@
 package com.moneysearch.services.dialogstate.handlers
 
-import com.moneysearch.Location
+import com.moneysearch.repositories.Location
 import com.moneysearch.repositories.User
 import com.moneysearch.services.UserService
 import com.moneysearch.services.dialogstate.DialogState.MAIN_MENU

@@ -1,20 +1,20 @@
 package com.moneysearch.services.dialogstate.handlers
 
-import com.moneysearch.Action.ADD
-import com.moneysearch.Action.REMOVE
-import com.moneysearch.CurrencyMessageParser
-import com.moneysearch.CurrencyParsingFailedResult
-import com.moneysearch.CurrencyParsingSuccessfulResult
 import com.moneysearch.repositories.Currency
 import com.moneysearch.repositories.User
+import com.moneysearch.services.Action.ADD
+import com.moneysearch.services.Action.REMOVE
+import com.moneysearch.services.CurrencyMessageParser
+import com.moneysearch.services.CurrencyParsingFailedResult
+import com.moneysearch.services.CurrencyParsingSuccessfulResult
 import com.moneysearch.services.UserService
 import com.moneysearch.services.dialogstate.DialogState.MAIN_MENU
 import com.moneysearch.services.dialogstate.DialogStateHandler
 import com.moneysearch.services.dialogstate.HandleResult
+import com.moneysearch.services.dialogstate.Request
 import com.moneysearch.services.dialogstate.SuggestedCommand
 import com.moneysearch.services.dialogstate.SuggestedCommandDTO
 import com.moneysearch.services.dialogstate.Suggestion
-import com.moneysearch.services.dialogstate.Request
 import com.moneysearch.services.dialogstate.toDto
 import org.springframework.stereotype.Component
 

@@ -1,6 +1,5 @@
 package com.moneysearch.repositories
 
-import com.moneysearch.Location
 import com.moneysearch.services.dialogstate.DialogState
 import com.moneysearch.repositories.SearchAreaType.WHOLE_SPB
 import java.lang.IllegalArgumentException
@@ -47,3 +46,8 @@ enum class Currency {
         }
     }
 }
+
+data class Location(
+    val longitude: Double,
+    val latitude: Double
+)

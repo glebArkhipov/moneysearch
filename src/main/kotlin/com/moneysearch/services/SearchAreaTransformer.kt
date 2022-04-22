@@ -1,6 +1,5 @@
 package com.moneysearch.services
 
-import com.moneysearch.CoordinatesCalculator
 import com.moneysearch.repositories.SearchArea
 import com.moneysearch.repositories.SearchAreaType
 import com.moneysearch.repositories.SearchAreaType.CUSTOM
