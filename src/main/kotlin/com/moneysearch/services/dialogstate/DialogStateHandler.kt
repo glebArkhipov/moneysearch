@@ -25,7 +25,7 @@ enum class DialogState {
 
 data class Suggestion(
     val suggestionText: String,
-    val suggestedCommandDTOS: List<SuggestedCommandDTO>
+    val suggestedCommandDTOs: List<SuggestedCommandDTO>
 )
 
 data class SuggestedCommand(

@@ -15,12 +15,12 @@ class SearchAreaTransformer(
         return if (searchArea.type == CUSTOM) {
             calculator.getBounds(searchArea.location!!, searchArea.distanceFromLocation)
         } else {
-            searchAreasToBoundsType[searchArea.type]!!
+            searchAreasTypesToBounds[searchArea.type]!!
         }
     }
 }
 
-val searchAreasToBoundsType: Map<SearchAreaType, Bounds> = mapOf(
+val searchAreasTypesToBounds: Map<SearchAreaType, Bounds> = mapOf(
     WHOLE_SPB to Bounds(
         bottomLeft = Bound(
             lat = 59.87594110877944,

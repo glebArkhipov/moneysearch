@@ -85,7 +85,7 @@ class Bot(
 }
 
 private fun Suggestion.toSendMessage(update: Update): SendMessage {
-    val rows = suggestedCommandDTOS
+    val rows = suggestedCommandDTOs
         .map {
             KeyboardButton.builder()
                 .text(it.commandTxt)
