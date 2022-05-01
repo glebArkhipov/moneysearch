@@ -12,12 +12,15 @@ Telegram bot that sends notifications about bank points that have money of parti
 
 ## What is needed to make bot work
 
-`BankApiAdapter` has to be implemented in order to get notifications
+`BankApiAdapter` has to be implemented in order make the bot to work\
+The implementation has to contain fetching data from some bank service
 
-Also `.env` has to contain three values
+`.env` has to contain three values
 1) `BOT_TOKEN` - provided by Bot Father
 2) `BOT_NAME` - provided by Bot Father
 3) `ALLOWED_USERS` - list of users that are allowed to use the bot, values have to be separated by comma
+
+Then you can call `./start.sh` and the bot has to start working
 
 ## Example of interface
 
